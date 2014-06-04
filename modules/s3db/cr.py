@@ -144,7 +144,7 @@ class S3ShelterModel(S3Model):
                                                                     f="shelter_type",
                                                                     label=ADD_SHELTER_TYPE),
                                           )
-
+        
         # -------------------------------------------------------------------------
         # Shelter services
         # e.g. medical, housing, food, ...
@@ -152,7 +152,7 @@ class S3ShelterModel(S3Model):
         define_table(tablename,
                      Field("name", notnull=True,
                            label = NAME,
-                           ),
+                           ),                   
                      s3_comments(),
                      *s3_meta_fields())
 
@@ -497,6 +497,7 @@ class S3ShelterModel(S3Model):
         self.add_components(tablename,
                             cr_shelter_allocation = "shelter_id",
                             cr_shelter_registration = "shelter_id",
+                            cr_shelter_housing_unit="shelter_id",
                             cr_shelter_status = {"name": "status",
                                                  "joinby": "shelter_id",
                                                  },
@@ -704,15 +705,82 @@ class S3ShelterRegistrationModel(S3Model):
     
     names = ["cr_shelter_allocation",
              "cr_shelter_registration",
+             "cr_shelter_housing_unit",
              ]
 
     def model(self):
         
         T = current.T
+        db = current.db
         
         define_table = self.define_table
         configure = self.configure
         
+        cr_housing_unit_opts = {1 : T("Empty"),
+                                 2 : T("Full"),
+                                 3 : T("Already Inhabited"),
+                                 4 : T("Not Available")
+                                 }
+        
+        tablename = "cr_shelter_housing_unit"
+        define_table(tablename,
+                     self.cr_shelter_id(ondelete="CASCADE"),
+                     Field("name", notnull=True,
+                           label = "name",
+                           ),
+#                     cr_shelter_type(),
+                     Field("status", "integer",
+                           label = T("Status"),
+                           requires = IS_EMPTY_OR(
+                                       IS_IN_SET(cr_housing_unit_opts)
+                                       ),
+                           ),
+                     Field("bath", "boolean",
+                           default = False,
+                           label = T("Available Bath"),
+                           readable = True,
+                           writable = True,
+                           ),
+                     Field("shower", "boolean",
+                           default = False,
+                           label = T("Available Shower"),
+                           readable = True,
+                           writable = True,
+                           ),
+                     Field("capacity", "integer",
+                           label = T("Capacity"),                    
+                           represent = lambda v: IS_INT_AMOUNT.represent(v),
+                           requires = IS_EMPTY_OR(
+                                        IS_INT_IN_RANGE(0, 999999)),
+                           readable = True,
+                           writable = True,       
+                           comment = DIV(_class="tooltip",
+                                         _title="%s" % (T("Module Capacity"))),           
+                           ),    
+                     Field("population", "integer",
+                           label = T("Current Population"),                    
+                           represent = lambda v: IS_INT_AMOUNT.represent(v),
+                           requires = IS_EMPTY_OR(
+                                        IS_INT_IN_RANGE(0, 999999)),
+                           readable = True,
+                           writable = True,       
+                           comment = DIV(_class="tooltip",
+                                         _title="%s" % (T("Current housing unit population"))),           
+                           ),  
+                     s3_comments(),
+                     *s3_meta_fields())
+        
+        
+        represent = S3Represent(lookup=tablename)
+        housing_unit_id = S3ReusableField("shelter_housing_unit_id", db.cr_shelter_housing_unit,
+                                          label = "Housing Unit",
+                                          ondelete = "RESTRICT",
+                                          represent = represent,
+                                          requires = IS_NULL_OR(IS_ONE_OF(db, "cr_shelter_housing_unit.id",                                             
+                                                                          represent,
+                                                                          orderby="cr_shelter_housing_unit.name")),
+                                          )
+       
         # ---------------------------------------------------------------------
         # Shelter Allocation: table to allocate shelter capacity to a group
         #
@@ -733,6 +801,7 @@ class S3ShelterRegistrationModel(S3Model):
                            requires = IS_IN_SET(allocation_status_opts),
                            represent = S3Represent(options = allocation_status_opts),
                            default = 3),
+                     housing_unit_id(),
                      Field("group_size_day", "integer",
                            default = 0),
                      Field("group_size_night", "integer",
@@ -774,6 +843,8 @@ class S3ShelterRegistrationModel(S3Model):
                                                               )
                                             ),
                               ),
+#                          shelter_type_id(),
+                          housing_unit_id(),           
                           Field("day_or_night", "integer",
                                 label = T("Presence in the shelter"),
                                 represent = S3Represent(
@@ -811,7 +882,8 @@ class S3ShelterRegistrationModel(S3Model):
                   onaccept = population_onaccept,
                   ondelete = population_onaccept,
                   )
-
+        
+        
         # ---------------------------------------------------------------------
         # Pass variables back to global scope (response.s3.*)
         return dict()
@@ -866,6 +938,7 @@ def cr_shelter_rheader(r, tabs=[]):
             if not tabs:
                 tabs = [(T("Basic Details"), None),
                         (T("Status Reports"), "status"),
+                        (T("Housing Units"), "shelter_housing_unit"),
                         (T("People Reservation"), "shelter_allocation"),
                         (T("People Registration"), "shelter_registration"),
                         (T("Staff"), "human_resource"),

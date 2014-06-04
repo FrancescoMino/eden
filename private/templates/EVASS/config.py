@@ -71,14 +71,16 @@ settings.auth.always_notify_approver = False
 #settings.auth.opt_in_team_list = ["Updates"]
 # Uncomment this to set the opt in default to True
 #settings.auth.opt_in_default = True
+# Uncomment this to request the Home Phone when a user registers
+#settings.auth.registration_requests_home_phone = True
 # Uncomment this to request the Mobile Phone when a user registers
-#settings.auth.registration_requests_mobile_phone = True
+settings.auth.registration_requests_mobile_phone = True
 # Uncomment this to have the Mobile Phone selection during registration be mandatory
-#settings.auth.registration_mobile_phone_mandatory = True
+settings.auth.registration_mobile_phone_mandatory = True
 # Uncomment this to request the Organisation when a user registers
-#settings.auth.registration_requests_organisation = True
+settings.auth.registration_requests_organisation = True
 # Uncomment this to have the Organisation selection during registration be mandatory
-#settings.auth.registration_organisation_required = True
+settings.auth.registration_organisation_required = True
 # Uncomment this to have the Organisation input hidden unless the user enters a non-whitelisted domain
 #settings.auth.registration_organisation_hidden = True
 # Uncomment this to default the Organisation during registration
@@ -204,6 +206,8 @@ settings.gis.countries = ["IT"]
 #settings.gis.building_name = False
 # Use a non-default fillColor for Clustered points
 #settings.gis.cluster_fill = "8087ff"
+# Disable the label for clustered points
+#settings.gis.cluster_label = False
 # Use a non-default strokeColor for Clustered points
 #settings.gis.cluster_stroke = "2b2f76"
 # Use a non-default fillColor for Selected points
@@ -232,20 +236,26 @@ settings.gis.countries = ["IT"]
 #settings.gis.duplicate_features = True
 # Uncomment to use CMS to provide Metadata on Map Layers
 #settings.gis.layer_metadata = True
+# Uncomment to show Clear Layers tool
+#settings.gis.clear_layers = True
+# Uncomment to hide the Geolocation control
+#settings.gis.geolocate_control = False
+# Uncomment to hide the WMS GetFeatureInfo control
+#settings.gis.getfeature_control = False
 # Uncomment to hide Layer Properties tool
 #settings.gis.layer_properties = False
 # Uncomment to hide the Base Layers folder in the LayerTree
 #settings.gis.layer_tree_base = False
 # Uncomment to hide the Overlays folder in the LayerTree
 #settings.gis.layer_tree_overlays = False
+# Uncomment to change the label of the Overlays folder in the LayerTree
+#settings.gis.label_overlays = "Overlays"
 # Uncomment to not expand the folders in the LayerTree by default
 #settings.gis.layer_tree_expanded = False
 # Uncomment to have custom folders in the LayerTree use Radio Buttons
 #settings.gis.layer_tree_radio = True
 # Uncomment to display the Map Legend as a floating DIV
 settings.gis.legend = "float"
-# Hide unnecessary Toolbar items
-settings.gis.nav_controls = False
 # Mouse Position: 'normal', 'mgrs' or None
 #settings.gis.mouse_position = "mgrs"
 # Uncomment to hide the Overview map
@@ -256,16 +266,29 @@ settings.gis.nav_controls = False
 #settings.gis.pois = False
 # PoIs to export in KML/OSM feeds from Admin locations
 #settings.gis.poi_resources = ["cr_shelter", "hms_hospital", "org_office"]
+# Uncomment to hide the Save control, or set to "float"
+#settings.gis.save = False
 # Uncomment to hide the ScaleLine control
 #settings.gis.scaleline = False
+# Uncomment to hide the GeoNames search box
+#settings.gis.search_geonames = False
 # Uncomment to modify the Simplify Tolerance
 #settings.gis.simplify_tolerance = 0.001
+# Uncomment to Hide the Toolbar from the main Map
+#settings.gis.toolbar = False
+# Uncomment to show Catalogue Layers in Map Widgets (e.g. Profile & Summary pages)
+#settings.gis.widget_catalogue_layers = True
+# Uncomment to show WMS Browser in Map Widgets (e.g. Profile & Summary pages)
+# - NB This also requires the active gis_config to have one configured
+#settings.gis.widget_wms_browser = True
 # Uncomment to hide the Zoom control
 #settings.gis.zoomcontrol = False
 
 # Messaging Settings
 # If you wish to use a parser.py in another folder than "default"
 #settings.msg.parser = "mytemplatefolder"
+# Uncomment to turn off enforcement of E.123 international phone number notation
+#settings.msg.require_international_phone_numbers = False
 
 # Use 'soft' deletes
 #settings.security.archive_not_delete = False
@@ -336,6 +359,12 @@ settings.security.policy = 7
 settings.cr.shelter_population_dynamic = True
 
 # -----------------------------------------------------------------------------
+
+# Events
+# Make Event Types Hierarchical
+#settings.event.types_hierarchical = True
+
+
 # Evacuees
 # Group Types
 #settings.evr.group_types = {1: T("other"),
@@ -348,18 +377,25 @@ settings.cr.shelter_population_dynamic = True
 #                            8: T("Hospital"),
 #                            9: T("Orphanage")
 #                            }
-
+# Uncomment to hide Emergency Contacts in Person Contacts page
+settings.pr.show_emergency_contacts = False
 # -----------------------------------------------------------------------------
 # Organisations
 # Uncomment to use an Autocomplete for Organisation lookup fields
 #settings.org.autocomplete = True
 # Enable the use of Organisation Branches
 settings.org.branches = True
+# Make Facility Types Hierarchical
+#settings.org.facility_types_hierarchical = True
 # Enable the use of Organisation Groups & what their name is
 #settings.org.groups = "Coalition"
-settings.org.groups = "Network"
+#settings.org.groups = "Network"
 # Enable the use of Organisation Regions
-#settings.org.regions = True
+settings.org.regions = True
+# Make Organisation Regions Hierarchical
+settings.org.regions_hierarchical = True
+# Make Services Hierarchical
+#settings.org.services_hierarchical = True
 # Set the length of the auto-generated org/site code the default is 10
 #settings.org.site_code_len = 3
 # Set the label for Sites
@@ -370,8 +406,8 @@ settings.org.groups = "Network"
 #settings.org.site_autocomplete = True
 # Extra fields to show in Autocomplete Representations
 #settings.org.site_autocomplete_fields = ["instance_type", "location_id$L1", "organisation_id$name"]
-# Uncomment to have Site Autocompletes search within Address fields
-#settings.org.site_address_autocomplete = True
+
+
 # Uncomment to hide inv & req tabs from Sites
 #settings.org.site_inv_req_tabs = False
 # Uncomment to add summary fields for Organisations/Offices for # National/International staff
@@ -404,13 +440,20 @@ settings.hrm.org_required = False
 # Uncomment to filter certificates by (root) Organisation & hence not allow Certificates from other orgs to be added to a profile (except by Admin)
 #settings.hrm.filter_certificates = True
 # Uncomment to allow HRs to have multiple Job Titles
-#settings.hrm.multiple_job_titles = True
+settings.hrm.multiple_job_titles = True
+# Uncomment to have each root Org use a different Job Title Catalog
+#settings.hrm.org_dependent_job_titles = True
 # Uncomment to hide the Staff resource
 #settings.hrm.show_staff = False
 # Uncomment to allow hierarchical categories of Skills, which each need their own set of competency levels.
 #settings.hrm.skill_types = True
 # Uncomment to disable Staff experience
 #settings.hrm.staff_experience = False
+# Uncomment to enable Volunteer 'active' field
+# - can also be made a function which is called to calculate the status based on recorded hours
+#settings.hrm.vol_active = True
+# Uncomment to define a Tooltip to show when viewing the Volunteer 'active' field
+#settings.hrm.vol_active_tooltip = "A volunteer is defined as active if they've participated in an average of 8 or more hours of Program work or Trainings per month in the last year"
 # Uncomment to disable Volunteer experience
 #settings.hrm.vol_experience = False
 # Uncomment to show the Organisation name in HR represents
@@ -422,7 +465,9 @@ settings.hrm.org_required = False
 # Uncomment to disable the use of Volunteer Awards
 #settings.hrm.use_awards = False
 # Uncomment to disable the use of HR Certificates
-#settings.hrm.use_certificates = False
+settings.hrm.use_certificates = False
+# Uncomment to enable the use of Staff/Volunteer IDs
+#settings.hrm.use_code = True
 # Uncomment to disable the use of HR Credentials
 #settings.hrm.use_credentials = False
 # Uncomment to disable the use of HR Description
@@ -434,9 +479,9 @@ settings.hrm.org_required = False
 # Uncomment to disable the use of HR Skills
 #settings.hrm.use_skills = False
 # Uncomment to disable the use of HR Teams
-#settings.hrm.teams = False
+settings.hrm.teams = False
 # Uncomment to disable the use of HR Trainings
-#settings.hrm.use_trainings = False
+settings.hrm.use_trainings = False
 
 # -----------------------------------------------------------------------------
 # Inventory Management
@@ -484,71 +529,19 @@ settings.hrm.org_required = False
 #        4: T("Surplus")
 #   }
 
-# -----------------------------------------------------------------------------
-# Requests Management
-# Uncomment to disable Inline Forms in Requests module
-#settings.req.inline_forms = False
-# Label for Inventory Requests
-#settings.req.type_inv_label = "Donations"
-# Label for People Requests
-#settings.req.type_hrm_label = "Volunteers"
-# Label for Requester
-#settings.req.requester_label = "Site Contact"
-#settings.req.requester_optional = True
-# Uncomment if the User Account logging the Request is NOT normally the Requester
-#settings.req.requester_is_author = False
-# Filter Requester as being from the Site 
-#settings.req.requester_from_site = True
-# Set the Requester as being an HR for the Site if no HR record yet & as Site contact if none yet exists
-#settings.req.requester_to_site = True
-#settings.req.date_writable = False
-# Allow the status for requests to be set manually,
-# rather than just automatically from commitments and shipments
-#settings.req.status_writable = False
-#settings.req.item_quantities_writable = True
-#settings.req.skill_quantities_writable = True
-#settings.req.show_quantity_transit = False
-#settings.req.multiple_req_items = False
-#settings.req.prompt_match = False
-#settings.req.items_ask_purpose = False
-# Uncomment to disable the Commit step in the workflow & simply move direct to Ship
-#settings.req.use_commit = False
-# Uncomment to have Donations include a 'Value' field
-#settings.req.commit_value = True
-# Uncomment to allow Donations to be made without a matching Request
-#settings.req.commit_without_request = True
-# Uncomment if the User Account logging the Commitment is NOT normally the Committer
-#settings.req.comittter_is_author = False
-# Should Requests ask whether Security is required?
-#settings.req.ask_security = True
-# Should Requests ask whether Transportation is required?
-#settings.req.ask_transport = True
-#settings.req.use_req_number = False
-#settings.req.generate_req_number = False
-#settings.req.req_form_name = "Request Issue Form"
-#settings.req.req_shortname = "RIS"
-# Restrict the type of requests that can be made, valid values in the
-# list are ["Stock", "People", "Other"]. If this is commented out then
-# all types will be valid.
-#settings.req.req_type = ["Stock"]
-# Uncomment to enable Summary 'Site Needs' tab for Offices/Facilities
-#settings.req.summary = True
-# Uncomment to restrict adding new commits to Completed commits
-#settings.req.req_restrict_on_complete = True
-
 # Custom Crud Strings for specific req_req types
 #settings.req.req_crud_strings = dict()
 #ADD_ITEM_REQUEST = T("Make a Request for Donations")
 # req_req Crud Strings for Item Request (type=1)
 #settings.req.req_crud_strings[1] = Storage(
-#    title_create = ADD_ITEM_REQUEST,
+#    label_create = ADD_ITEM_REQUEST,
 #    title_display = T("Request for Donations Details"),
 #    title_list = T("Requests for Donations"),
 #    title_update = T("Edit Request for Donations"),
-#    title_search = T("Search Requests for Donations"),
-#    subtitle_create = ADD_ITEM_REQUEST,
+
+
 #    label_list_button = T("List Requests for Donations"),
-#    label_create_button = ADD_ITEM_REQUEST,
+
 #    label_delete_button = T("Delete Request for Donations"),
 #    msg_record_created = T("Request for Donations Added"),
 #    msg_record_modified = T("Request for Donations Updated"),
@@ -557,19 +550,19 @@ settings.hrm.org_required = False
 #ADD_PEOPLE_REQUEST = T("Make a Request for Volunteers")
 # req_req Crud Strings for People Request (type=3)
 #settings.req.req_crud_strings[3] = Storage(
-#    title_create = ADD_PEOPLE_REQUEST,
+#    label_create = ADD_PEOPLE_REQUEST,
 #    title_display = T("Request for Volunteers Details"),
 #    title_list = T("Requests for Volunteers"),
 #    title_update = T("Edit Request for Volunteers"),
-#    title_search = T("Search Requests for Volunteers"),
-#    subtitle_create = ADD_PEOPLE_REQUEST,
 #    label_list_button = T("List Requests for Volunteers"),
-#    label_create_button = ADD_PEOPLE_REQUEST,
 #    label_delete_button = T("Delete Request for Volunteers"),
 #    msg_record_created = T("Request for Volunteers Added"),
 #    msg_record_modified = T("Request for Volunteers Updated"),
 #    msg_record_deleted = T("Request for Volunteers Canceled"),
 #    msg_list_empty = T("No Requests for Volunteers"))
+
+
+
 
 # -----------------------------------------------------------------------------
 # Supply
@@ -577,50 +570,6 @@ settings.hrm.org_required = False
 # Do not edit after deployment
 #settings.supply.catalog_default = T("Default")
 
-# -----------------------------------------------------------------------------
-# Projects
-# Uncomment this to use settings suitable for a global/regional organisation (e.g. DRR)
-#settings.project.mode_3w = True
-# Uncomment this to use DRR (Disaster Risk Reduction) extensions
-#settings.project.mode_drr = True
-# Uncomment this to use settings suitable for detailed Task management
-#settings.project.mode_task = True
-# Uncomment this to use Activities for projects
-settings.project.activities = True
-# Uncomment this to use Activity Types for Activities/Projects
-#settings.project.activity_types = True
-# Uncomment this to use multiple Organization per project
-#settings.project.multiple_organizations = True
-# Uncomment this to use Codes for projects
-#settings.project.codes = True
-# Uncomment this to call project locations 'Communities'
-#settings.project.community = True
-# Uncomment this to enable Hazards in 3W projects
-#settings.project.hazards = True
-# Uncomment this to enable Milestones in projects
-#settings.project.milestones = True
-# Uncomment this to link Activities to Projects
-#settings.project.projects = True
-# Uncomment this to disable Sectors in projects
-#settings.project.sectors = False
-# Uncomment this to enable Themes in 3W projects
-#settings.project.themes = True
-# Uncomment this to use Theme Percentages for projects
-#settings.project.theme_percentages = True
-# Uncomment this to use multiple Budgets per project
-#settings.project.multiple_budgets = True
-# Uncomment this to use multiple Organisations per project
-#settings.project.multiple_organisations = True
-# Uncomment this to customise
-# Links to Filtered Components for Donors & Partners
-#settings.project.organisation_roles = {
-#    1: T("Lead Implementer"), # T("Host National Society")
-#    2: T("Partner"), # T("Partner National Society")
-#    3: T("Donor"),
-#    4: T("Customer"), # T("Beneficiary")?
-#    5: T("Super"), # T("Beneficiary")?
-#}
-#settings.project.organisation_lead_role = 1
 
 # -----------------------------------------------------------------------------
 # Filter Manager
@@ -842,10 +791,10 @@ settings.modules = OrderedDict([
         access = "|1|",     # Only Administrators can see this module in the default menu & access the controller
         module_type = None  # This item is handled separately for the menu
     )),
-    ("tour", Storage(
-        name_nice = T("Guided Tour Functionality"),
-        module_type = None,
-    )),
+    #("tour", Storage(
+    #    name_nice = T("Guided Tour Functionality"),
+    #    module_type = None,
+    #)),
     ("translate", Storage(
         name_nice = T("Translation Functionality"),
         #description = "Selective translation of strings based on module.",
@@ -933,12 +882,12 @@ settings.modules = OrderedDict([
     #    restricted = True,
     #    module_type = 10,
     #)),
-    ("project", Storage(
-        name_nice = T("Projects"),
-        #description = "Tracking of Projects, Activities and Tasks",
-        restricted = True,
-        module_type = 2
-    )),
+    #("project", Storage(
+    #    name_nice = T("Projects"),
+    #    #description = "Tracking of Projects, Activities and Tasks",
+    #    restricted = True,
+    #    module_type = 2
+    #)),
     ("cr", Storage(
         name_nice = T("Shelters"),
         #description = "Tracks the location, capacity and breakdown of victims in Shelters",

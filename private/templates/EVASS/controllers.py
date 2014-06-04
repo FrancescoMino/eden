@@ -92,7 +92,7 @@ $('#login-btn').click(function(){
             output["shelter_list"] = self.shelter_list()
             output["organizations_btn"] = self.organizations_btn()
             output["events_btn"] = self.events_btn()
-            output["projects_btn"] = self.projects_btn()
+#            output["projects_btn"] = self.projects_btn()
             output["incident_reports_btn"] = self.incident_reports_btn()
             output["pr_btn"] = self.pr_btn()
             output["staff_btn"] = self.staff_btn()
@@ -227,11 +227,11 @@ google.setOnLoadCallback(LoadDynamicFeedControl)'''))
                   )
 
 # -------------------------------------------------------------------------
-    def projects_btn(self):
-        return LI(A("Projects",
-                    _href=URL(c="project", f="project"),
-                    _class="button button-home")
-                  )
+#    def projects_btn(self):
+#        return LI(A("Projects",
+#                    _href=URL(c="project", f="project"),
+#                    _class="button button-home")
+#                  )
 
     # -------------------------------------------------------------------------
     def incident_reports_btn(self):
