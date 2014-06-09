@@ -108,6 +108,16 @@ class S3LocationModel(S3Model):
                                  5: "MultiLineString",
                                  6: "MultiPolygon",
                                  7: "GeometryCollection",
+                                 #8: "CircularString",
+                                 #9: "CompoundCurve",
+                                 #10: "CurvePolygon",
+                                 #11: "MultiCurve",
+                                 #12: "MultiSurface",
+                                 #13: "Curve",
+                                 #14: "Surface",
+                                 #15: "PolyhedralSurface",
+                                 #16: "TIN",
+                                 #17: "Triangle",
                                  }
 
         hierarchy_level_keys = current.gis.hierarchy_level_keys
@@ -1811,6 +1821,12 @@ class S3GISConfigModel(S3Model):
 
                      # This should be turned off for Offline deployments or expensive SatComms, such as BGAN
                      Field("geocoder", "boolean"),
+                     # Whether the config is just temporary for taking a screenshot
+                     Field("temp", "boolean",
+                           default = False,
+                           readable = False,
+                           writable = False,
+                           ),
                      Field("wmsbrowser_url"),
                      Field("wmsbrowser_name",
                            default = "Web Map Service",

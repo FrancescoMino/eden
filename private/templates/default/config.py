@@ -266,6 +266,8 @@ settings.L10n.decimal_separator = "."
 #settings.gis.legend = "float"
 # Mouse Position: 'normal', 'mgrs' or None
 #settings.gis.mouse_position = "mgrs"
+# Uncomment to show the Navigation controls on the toolbar
+#settings.gis.nav_controls = True
 # Uncomment to hide the Overview map
 #settings.gis.overview = False
 # Uncomment to hide the permalink control
@@ -274,6 +276,9 @@ settings.L10n.decimal_separator = "."
 #settings.gis.pois = False
 # PoIs to export in KML/OSM feeds from Admin locations
 #settings.gis.poi_resources = ["cr_shelter", "hms_hospital", "org_office"]
+# Uncomment to show the Print control:
+# http://eden.sahanafoundation.org/wiki/UserGuidelines/Admin/MapPrinting
+#settings.gis.print_button = True
 # Uncomment to hide the Save control, or set to "float"
 #settings.gis.save = False
 # Uncomment to hide the ScaleLine control
@@ -365,6 +370,8 @@ settings.gis.geonames_username = "eden_test"
 #settings.ui.use_button_glyphicons = True
 # Uncomment to use S3MultiSelectWidget on all dropdowns (currently the Auth Registration page & LocationSelectorWidget2 listen to this)
 #settings.ui.multiselect_widget = True
+# Theme for the S3HierarchyWidget (folder in static/styles/jstree or relative to application)
+#settings.ui.hierarchy_theme = "default"
 
 # -----------------------------------------------------------------------------
 # CMS

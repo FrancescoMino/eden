@@ -132,6 +132,12 @@ class S3Config(Storage):
         """
         return self.base.get("template", "default")
 
+    def get_chat_server(self):
+        """
+            Get the ip of the chat server if enabled or return False
+        """
+        return self.base.get("chat_server", False)
+
     def exec_template(self, path):
         """
             Execute the template
@@ -945,11 +951,18 @@ class S3Config(Storage):
         """
         return self.gis.get("postcode_selector", True)
 
-    def get_gis_print_service(self):
+    def get_gis_print(self):
         """
-            URL for a Print Service
+            Should the Map display a Print control?
         """
-        return self.gis.get("print_service", "")
+        return self.gis.get("print_button", False) # Change to True once ready for prime-time
+
+    #def get_gis_print_service(self):
+    #    """
+    #        URL for an external Print Service (based on the MapFish plugin for GeoServer)
+    #         http://eden.sahanafoundation.org/wiki/BluePrint/GIS/Printing
+    #    """
+    #    return self.gis.get("print_service", "")
 
     def get_gis_save(self):
         """
@@ -1397,6 +1410,17 @@ class S3Config(Storage):
             Use glyphicons on action buttons (requires bootstrap CSS)
         """
         return self.ui.get("use_button_glyphicons", False)
+
+    def get_ui_hierarchy_theme(self):
+        """
+            Theme for the S3HierarchyWidget: folder, either relative to
+            static/styles/jstree (e.g. "default"), or relative to the
+            application (e.g. "static/styles/jstree/default")
+
+            @note: for right-to-left scripts, the theme folder is expected
+                   to be <themename>-rtl (e.g. "default-rtl")
+        """
+        return self.ui.get("hierarchy_theme", None)
 
     # =========================================================================
     # Messaging
