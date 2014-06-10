@@ -1831,6 +1831,12 @@ class S3Config(Storage):
                                             8 :T("Hospital"),
                                             9 :T("Orphanage")
                                             })
+    
+    def get_evr_show_physical_description(self):
+        """
+            Show Evacuees physical description
+        """
+        return self.evr.get("physical_description", True)
 
     # -------------------------------------------------------------------------
     # Hospital Registry

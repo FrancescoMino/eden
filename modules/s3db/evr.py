@@ -49,6 +49,8 @@ class S3EVRCaseModel(S3Model):
         db = current.db
         define_table = self.define_table
         person_id = self.pr_person_id
+        shelter_id = self.cr_shelter_id
+#        shelter_type_id = self.cr_housing_unit_id
 
         # ---------------------------------------------------------------------
         # Case Data
@@ -56,6 +58,7 @@ class S3EVRCaseModel(S3Model):
         tablename = "evr_case"
         define_table(tablename,
                      person_id(ondelete="CASCADE"),
+                     shelter_id(),
                      Field("fiscal_code", "string", length = 16,
                            label = T("Fiscal Code"),
                            comment = DIV(_class="tooltip",
@@ -353,6 +356,8 @@ def evr_rheader(r):
     """
 
     T = current.T
+    settings = current.deployment_settings
+    
     if r.representation != "html" or not r.record:
         return None
 
@@ -370,11 +375,16 @@ def evr_rheader(r):
                 #(T("Identity Documents"), "identity"),
                 #(T("Case Details"), "case"),
                 (T("Images"), "image"),
-                (T("Physical Description"), "physical_description"),
                 (T("Medical Information"), "medical_details"),
                 (T("Socio-Economic Background"), "background"),
-                (T("Shelter Registration"), "shelter_registration"),
-                ]
+                ] 
+                     
+        if settings.get_evr_show_physical_description():
+            tabs.append((T("Physical Description"), "physical_description"))
+        
+        if settings.has_module("cr"):
+            tabs.append((T("Shelter Registration"), "shelter_registration"))
+            tabs.append((T("Shelter Housing"), "shelter_housing_unit"))
 
         rheader_fields = [["first_name", "last_name"],
                           ["date_of_birth"],

@@ -500,7 +500,8 @@ class S3ShelterModel(S3Model):
                             cr_shelter_status = {"name": "status",
                                                  "joinby": "shelter_id",
                                                  },
-                            event_event_shelter = "shelter_id"
+                            event_event_shelter = "shelter_id",
+                            evr_case = "shelter_id",                          
                             )
 
         set_method("cr", "shelter",
@@ -835,6 +836,8 @@ class S3ShelterRegistrationModel(S3Model):
         list_fields = ["id",
                        "name",
                        "status",
+                       "capacity_day",
+                       "capacity_night",
                        #"shelter_service_id",
                        "unit_availability_day",
                        "unit_availability_night",

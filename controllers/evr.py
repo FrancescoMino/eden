@@ -96,6 +96,7 @@ def person():
                                         "last_name",
                                         "date_of_birth",
                                         "person_details.place_of_birth",
+                                        "case.shelter_id",
                                         "case.fiscal_code",
                                         S3SQLInlineComponent(
                                             "identity",

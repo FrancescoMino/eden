@@ -375,6 +375,8 @@ settings.cr.shelter_housing_unit_management = True
 #                            8: T("Hospital"),
 #                            9: T("Orphanage")
 #                            }
+# Uncomment to hide evacuees physical description in Evacuees page
+settings.evr.physical_description = False
 # Uncomment to hide Emergency Contacts in Person Contacts page
 settings.pr.show_emergency_contacts = False
 # -----------------------------------------------------------------------------
