@@ -49,24 +49,13 @@ class S3MainMenu(default.S3MainMenu):
         return [
             homepage(name="EVASS"),
             homepage("gis"),
-#           homepage("evr")(
-#                 MM("Persons", f="person"),
-#                 MM("Groups", f="group")
-#             ),
-#             homepage("cr"),
             homepage("msg"),
-#            homepage("project")
-#            homepage("stats"),
-#            homepage("event"),
-#            homepage("irs"),
-#            homepage("vol"),
-#            homepage("hrm"),
-            #MM("more", link=False)(
-            #),
+
        ]
 
 # =============================================================================
 class S3OptionsMenu(default.S3OptionsMenu):
+    
     #"""
         #Custom Controller Menus
 
@@ -87,10 +76,10 @@ class S3OptionsMenu(default.S3OptionsMenu):
         #underscore prefix).
     #"""
 
-    # -------------------------------------------------------------------------
+#    -------------------------------------------------------------------------
     def evr(self):
         """ EVR / Evacuees Registry """
-
+ 
         return M(c="evr")(
                     M("Persons", f="person")(
                         M("New", m="create"),

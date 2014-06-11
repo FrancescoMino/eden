@@ -1793,7 +1793,7 @@ class S3Config(Storage):
             selection during evacuees registration.
         """
         return self.cr.get("shelter_housing_unit_management",False)
-
+    
     # -------------------------------------------------------------------------
     # Deployments
     #
