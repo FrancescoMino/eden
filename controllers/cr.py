@@ -37,6 +37,16 @@ def shelter_type():
     output = s3_rest_controller()
     return output
 
+def shelter_unit():
+    """
+        RESTful CRUD controller
+        List / add shelter unit (e.g. NGO-operated, Government evacuation center,
+        School, Hospital -- see Agasti opt_camp_type.)
+    """
+
+    output = s3_rest_controller()
+    return output
+
 # -----------------------------------------------------------------------------
 def shelter_service():
     """

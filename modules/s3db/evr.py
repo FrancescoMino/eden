@@ -49,8 +49,6 @@ class S3EVRCaseModel(S3Model):
         db = current.db
         define_table = self.define_table
         person_id = self.pr_person_id
-        shelter_id = self.cr_shelter_id
-#        shelter_type_id = self.cr_housing_unit_id
 
         # ---------------------------------------------------------------------
         # Case Data
@@ -58,7 +56,6 @@ class S3EVRCaseModel(S3Model):
         tablename = "evr_case"
         define_table(tablename,
                      person_id(ondelete="CASCADE"),
-                     shelter_id(),
                      Field("fiscal_code", "string", length = 16,
                            label = T("Fiscal Code"),
                            comment = DIV(_class="tooltip",
@@ -238,7 +235,7 @@ class S3EVRCaseModel(S3Model):
                            label = T("Interpreter / Cultural Mediator")
                            ),
                      Field("distance_from_shelter", "integer",
-                           label = T("Distance from Shelter (km)")
+                           label = T("Work Distance from Shelter (km)")
                            ),
                      Field("job_lost_by_event", "boolean",
                            label = T("Job lost by event")
@@ -384,7 +381,6 @@ def evr_rheader(r):
         
         if settings.has_module("cr"):
             tabs.append((T("Shelter Registration"), "shelter_registration"))
-            tabs.append((T("Shelter Housing"), "shelter_housing_unit"))
 
         rheader_fields = [["first_name", "last_name"],
                           ["date_of_birth"],

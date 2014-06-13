@@ -47,8 +47,9 @@ class S3MainMenu(default.S3MainMenu):
         """ Custom Modules Menu """
 
         return [
-            homepage(name="EVASS"),
+            homepage(name="EVASS"),            
             homepage("gis"),
+            homepage("org"),
             homepage("msg"),
 
        ]

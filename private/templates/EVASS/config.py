@@ -26,13 +26,6 @@ settings = current.deployment_settings
 # Configure/disable pre-population of the database.
 # To pre-populate the database On 1st run should specify directory(s) in
 # /private/templates/
-# eg:
-# ["default"] (1 is a shortcut for this)
-# ["Standard"]
-# ["IFRC_Train"]
-# ["roles", "user"]
-# Unless doing a manual DB migration, where prepopulate = 0
-# In Production, prepopulate = 0 (to save 1x DAL hit every page)
 
 settings.base.prepopulate = ["EVASS"]
 
@@ -341,15 +334,6 @@ settings.security.policy = 7
 #settings.ui.interim_save = True
 
 # -----------------------------------------------------------------------------
-# CMS
-# Uncomment to use Bookmarks in Newsfeed
-#settings.cms.bookmarks = True
-# Uncomment to use Rich Text editor in Newsfeed
-#settings.cms.richtext = True
-# Uncomment to show tags in Newsfeed
-#settings.cms.show_tags = True
-
-# -----------------------------------------------------------------------------
 # Shelters
 # Uncomment to use a dynamic population estimation by calculations based on registrations  
 settings.cr.shelter_population_dynamic = True
@@ -483,52 +467,6 @@ settings.hrm.teams = False
 # Uncomment to disable the use of HR Trainings
 settings.hrm.use_trainings = False
 
-# -----------------------------------------------------------------------------
-# Inventory Management
-#settings.inv.collapse_tabs = False
-# Uncomment to customise the label for Facilities in Inventory Management
-#settings.inv.facility_label = "Facility"
-# Uncomment if you need a simpler (but less accountable) process for managing stock levels
-#settings.inv.direct_stock_edits = True
-# Uncomment to call Stock Adjustments, 'Stock Counts'
-#settings.inv.stock_count = True
-# Use the term 'Order' instead of 'Shipment'
-#settings.inv.shipment_name = "order"
-# Uncomment to not track pack values
-#settings.inv.track_pack_values = False
-#settings.inv.show_mode_of_transport = True
-#settings.inv.send_show_org = False
-#settings.inv.send_show_time_in = True
-#settings.inv.send_form_name = "Tally Out Sheet"
-#settings.inv.send_short_name = "TO"
-#settings.inv.send_ref_field_name = "Tally Out Number"
-#settings.inv.recv_form_name = "Acknowledgement Receipt for Donations Received Form"
-#settings.inv.recv_shortname = "ARDR"
-# Types common to both Send and Receive
-#settings.inv.shipment_types = {
-#         0: T("-"),
-#         1: T("Other Warehouse"),
-#         2: T("Donation"),
-#         3: T("Foreign Donation"),
-#         4: T("Local Purchases"),
-#         5: T("Confiscated Goods from Bureau Of Customs")
-#    }
-#settings.inv.send_types = {
-#        21: T("Distribution")
-#    }
-#settings.inv.send_type_default = 1
-#settings.inv.recv_types = {
-#        32: T("Donation"),
-#        34: T("Purchase"),
-#    }
-#settings.inv.item_status = {
-#        0: current.messages["NONE"],
-#        1: T("Dump"),
-#        2: T("Sale"),
-#        3: T("Reject"),
-#        4: T("Surplus")
-#   }
-
 # Custom Crud Strings for specific req_req types
 #settings.req.req_crud_strings = dict()
 #ADD_ITEM_REQUEST = T("Make a Request for Donations")
@@ -562,24 +500,6 @@ settings.hrm.use_trainings = False
 #    msg_list_empty = T("No Requests for Volunteers"))
 
 
-
-
-# -----------------------------------------------------------------------------
-# Supply
-#settings.supply.use_alt_name = False
-# Do not edit after deployment
-#settings.supply.catalog_default = T("Default")
-
-
-# -----------------------------------------------------------------------------
-# Filter Manager
-#settings.search.filter_manager = False
-
-# if you want to have videos appearing in /default/video
-#settings.base.youtube_id = [dict(id = "introduction",
-#                                 title = T("Introduction"),
-#                                 video_id = "HR-FtR2XkBU"),]
-
 #*****************************Frontpage settings*************************
 # RSS feeds
 settings.frontpage.rss = [
@@ -611,16 +531,6 @@ settings.frontpage.rss = [
 #     "url": "http://api2.socialmention.com/search?q=protezionecivile&t=all&f=rss"
 #    }
 ]
-
-# =============================================================================
-def customise_org_organisation_controller(**attr):
-
-    table = current.s3db.org_organisation
-    table.year.label = T("Year Founded")
-    return attr
-
-settings.customise_org_organisation_controller = customise_org_organisation_controller
-
 # -----------------------------------------------------------------------------
 def customise_pr_person_resource(r, tablename):
 
@@ -839,18 +749,6 @@ settings.modules = OrderedDict([
         restricted = True,
         module_type = 10,
     )),
-    #("cms", Storage(
-    #  name_nice = T("Content Management"),
-    #  #description = "Content Management System",
-     # restricted = True,
-    #  module_type = 10,
-    #)),
-    #("doc", Storage(
-    #    name_nice = T("Documents"),
-    #    #description = "A library of digital resources, such as photos, documents and reports",
-    #    restricted = True,
-    #    module_type = None,
-    #)),
     ("msg", Storage(
         name_nice = T("Messaging"),
         #description = "Sends & Receives Alerts via Email & SMS",
@@ -858,67 +756,12 @@ settings.modules = OrderedDict([
         # The user-visible functionality of this module isn't normally required. Rather it's main purpose is to be accessed from other modules.
         module_type = 2,
     )),
-    ("supply", Storage(
-        name_nice = T("Supply Chain Management"),
-        #description = "Used within Inventory Management, Request Management and Asset Management",
-        restricted = True,
-        module_type = None, # Not displayed
-    )),
-    ("inv", Storage(
-        name_nice = T("Warehouses"),
-        #description = "Receiving and Sending Items",
-        restricted = True,
-        module_type = 10
-    )),
-    #("asset", Storage(
-        #name_nice = T("Assets"),
-        ##description = "Recording and Assigning Assets",
-        #restricted = True,
-        #module_type = 5,
-    #)),
-    #("req", Storage(
-    #    name_nice = T("Requests"),
-    #    #description = "Manage requests for supplies, assets, staff or other resources. Matches against Inventories where supplies are requested.",
-    #    restricted = True,
-    #    module_type = 10,
-    #)),
-    #("project", Storage(
-    #    name_nice = T("Projects"),
-    #    #description = "Tracking of Projects, Activities and Tasks",
-    #    restricted = True,
-    #    module_type = 2
-    #)),
     ("cr", Storage(
         name_nice = T("Shelters"),
         #description = "Tracks the location, capacity and breakdown of victims in Shelters",
         restricted = True,
         module_type = 10
     )),
-    ("hms", Storage(
-        name_nice = T("Hospitals"),
-        #description = "Helps to monitor status of hospitals",
-        restricted = True,
-        module_type = 10
-    )),
-    ("irs", Storage(
-        name_nice = T("Incidents"),
-        #description = "Incident Reporting System",
-        restricted = True,
-        module_type = 10
-    )),
-    #("dvi", Storage(
-       #name_nice = T("Disaster Victim Identification"),
-       ##description = "Disaster Victim Identification",
-       #restricted = True,
-       #module_type = 10,
-       ##access = "|DVI|",      # Only users with the DVI role can see this module in the default menu & access the controller
-    #)),
-    #("dvr", Storage(
-       #name_nice = T("Disaster Victim Registry"),
-       ##description = "Allow affected individuals & households to register to receive compensation and distributions",
-       #restricted = True,
-       #module_type = 10,
-    #)),
     ("evr", Storage(
          name_nice = T("Evacuees"),
          #description = "Evacuees Registry",
@@ -931,22 +774,4 @@ settings.modules = OrderedDict([
         restricted = True,
         module_type = 10,
     )),
-    ("transport", Storage(
-       name_nice = T("Transport"),
-       restricted = True,
-       module_type = 10,
-    )),
-    #("stats", Storage(
-    #        name_nice = T("Statistics"),
-    #        #description = "Manages statistics",
-    #        restricted = True,
-    #        module_type = 3,
-    #    )),
-    # @ToDo: Rewrite in a modern style
-    #("budget", Storage(
-    #        name_nice = T("Budgeting Module"),
-    #        #description = "Allows a Budget to be drawn up",
-    #        restricted = True,
-    #        module_type = 10
-    #    )),
 ])

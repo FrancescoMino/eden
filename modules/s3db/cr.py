@@ -65,7 +65,8 @@ class S3ShelterModel(S3Model):
              "cr_shelter_id",
              "cr_shelter_status",
              "cr_shelter_person",
-             "cr_shelter_allocation"
+             "cr_shelter_allocation",
+             "cr_shelter_unit",
              ]
 
     # Define a function model() which takes no parameters (except self):
@@ -494,17 +495,29 @@ class S3ShelterModel(S3Model):
                                                                                        T("optional"))),
                                      widget = S3AutocompleteWidget("cr", "shelter")
                                      )
-
-        self.add_components(tablename,
+        
+        if current.request.controller == "evr":
+            self.add_components(tablename,
                             cr_shelter_allocation = "shelter_id",
-                            cr_shelter_registration = "shelter_id",
-                            cr_shelter_housing_unit="shelter_id",
+                            cr_shelter_registration = "person_id",
+                            cr_shelter_unit = "shelter_id",
                             cr_shelter_status = {"name": "status",
                                                  "joinby": "shelter_id",
                                                  },
                             event_event_shelter = "shelter_id",
                             evr_case = "shelter_id",                          
                             )
+        else:
+            self.add_components(tablename,
+                                cr_shelter_allocation = "shelter_id",
+                                cr_shelter_registration = "shelter_id",
+                                cr_shelter_unit = "shelter_id",
+                                cr_shelter_status = {"name": "status",
+                                                     "joinby": "shelter_id",
+                                                     },
+                                event_event_shelter = "shelter_id",
+                                evr_case = "shelter_id",                          
+                                )
 
         set_method("cr", "shelter",
                    method = "dispatch",
@@ -562,12 +575,202 @@ class S3ShelterModel(S3Model):
                 msg_record_modified = T("Shelter Status updated"),
                 msg_record_deleted = T("Shelter Status deleted"),
                 msg_list_empty = T("No Shelter Statuses currently registered"))
+            
+        cr_housing_unit_opts = {1 : T("Available"),
+                                2 : T("Not Available"),
+                                }
+        cr_housing_unit_handicap_facilities = {1: T("Available"),
+                                               2: T("Suitable"),
+                                               3: T("Not Available")
+                                               }
+        
+        tablename = "cr_shelter_unit"
+        define_table(tablename,
+                     shelter_id(ondelete="CASCADE"),
+                     Field("name", notnull=True,                          
+                           length=64,
+                           label = T("Housing Unit Name"),
+                           requires = IS_NOT_EMPTY(),
+                           ),
+                     Field("status", "integer",
+                           default = 1,
+                           label = T("Status"),
+                           represent = lambda opt: \
+                               cr_housing_unit_opts.get(opt, messages.UNKNOWN_OPT),
+                           requires = IS_EMPTY_OR(
+                                       IS_IN_SET(cr_housing_unit_opts))
+                           ),
+                     
+                     Field("bath", "boolean",
+                           default = True,
+                           label = T("Available Bath"),
+                           comment = DIV(_class="tooltip",
+                                         _title="%s|%s" % (T("Bath Availability"),
+                                                           T("Integrated bath within housing unit"))),
+                           readable = True,
+                           writable = True,
+                           ),
+                     Field("handicap_bath", "integer",
+                           default = 1,
+                           label = T("Bath with handicap facilities"),
+                           represent = lambda opt: \
+                               cr_housing_unit_handicap_facilities.get(opt, messages.UNKNOWN_OPT),
+                           requires = IS_EMPTY_OR(
+                                       IS_IN_SET(cr_housing_unit_handicap_facilities)),
+                           comment = DIV(_class="tooltip",
+                                         _title="%s|%s" % (T("Bath Handicap Facilities"),
+                                                           T("Availability of bath handicap facilities"))),
+                           readable = True,
+                           writable = True,
+                           ),
+                     Field("shower", "boolean",
+                           default = True,
+                           label = T("Available Shower"),
+                           comment = DIV(_class="tooltip",
+                                         _title="%s|%s" % (T("Shower Availability"),
+                                                           T("Integrated shower within housing unit"))),
+                           readable = True,
+                           writable = True,
+                           ),
+                     Field("handicap_shower", "integer",
+                           default = 1,
+                           label = T("Shower with handicap facilities"),
+                           represent = lambda opt: \
+                               cr_housing_unit_handicap_facilities.get(opt, messages.UNKNOWN_OPT),
+                           requires = IS_EMPTY_OR(
+                                       IS_IN_SET(cr_housing_unit_handicap_facilities)),
+                           comment = DIV(_class="tooltip",
+                                         _title="%s|%s" % (T("Shower Handicap Facilities"),
+                                                           T("Availability of shower handicap facilities"))),
+                           readable = True,
+                           writable = True,
+                           ),
+                     Field("capacity_day", "integer",
+                           default = 0,
+                           label = T("Housing Unit Capacity (Day and Night)"),                    
+                           represent = lambda v: IS_INT_AMOUNT.represent(v),
+                           requires = IS_EMPTY_OR(
+                                        IS_INT_IN_RANGE(0, 999999)),
+                           readable = True,
+                           writable = True,       
+                           comment = DIV(_class="tooltip",
+                                         _title="%s|%s" % (T("Module Day and Night Capacity"),
+                                                           T("Capacity of the housing unit for people who need to stay both day and night"))),           
+                           ),
+                     Field("capacity_night", "integer",
+                           default = 0,
+                           label = T("Housing Unit Capacity (Night)"),                    
+                           represent = lambda v: IS_INT_AMOUNT.represent(v),
+                           requires = IS_EMPTY_OR(
+                                        IS_INT_IN_RANGE(0, 999999)),
+                           readable = True,
+                           writable = True,       
+                           comment = DIV(_class="tooltip",
+                                         _title="%s|%s" % (T("Module Night Capacity"),
+                                                           T("Capacity of the housing unit for people who need to stay both day and night"))),           
+                           ),
+                     Field("available_capacity_day", "integer",
+                           default = 0,
+                           label = T("Population Availability (Day and Night)"),
+                           represent = lambda v: IS_INT_AMOUNT.represent(v),
+                           requires = IS_EMPTY_OR(
+                                        IS_INT_IN_RANGE(0, 999999)),
+                           comment = DIV(_class="tooltip",
+                                         _title="%s" % (T("Current Population Availability (Day and Night)"))),
+                           # Automatically updated
+                           readable = dynamic,
+                           writable = False
+                           ),
+                     Field("available_capacity_night", "integer",
+                           default = 0,
+                           label = T("Population Availability (Night)"),
+                           represent = lambda v: IS_INT_AMOUNT.represent(v),
+                           requires = IS_EMPTY_OR(
+                                        IS_INT_IN_RANGE(0, 999999)),
+                           comment = DIV(_class="tooltip",
+                                         _title="%s" % (T("Current Population Availability (Night)"))),
+                           # Automatically updated
+                           readable = dynamic,
+                           writable = False
+                           ),
+                     Field("population_day", "integer",
+                           default = 0,
+                           label = T("Current Population (Day and Night)"),
+                           represent = lambda v: IS_INT_AMOUNT.represent(v),
+                           requires = IS_EMPTY_OR(
+                                        IS_INT_IN_RANGE(0, 999999)),
+                           comment = DIV(_class="tooltip",
+                                         _title="%s|%s" % (T("Housing Unit Current Population"),
+                                                           T("Number of evacuees registered in this housing unit (Day and Night)"))),
+                           readable = False,
+                           # Automatically updated
+                           writable = False
+                           ),
+                     Field("population_night", "integer",
+                           default = 0,
+                           label = T("Current Population (Night)"),
+                           represent = lambda v: IS_INT_AMOUNT.represent(v),
+                           requires = IS_EMPTY_OR(
+                                        IS_INT_IN_RANGE(0, 999999)),
+                           comment = DIV(_class="tooltip",
+                                         _title="%s|%s" % (T("Housing Unit Current Population"),
+                                                           T("Number of evacuees registered in this housing unit (Night)"))),
+                           readable = False,
+                           # Automatically updated
+                           writable = False
+                           ),
+                     Field("animal_presence", "boolean",
+                           default = False,
+                           label = T("Animal presence"),
+                           comment = DIV(_class="tooltip",
+                                         _title="%s|%s" % (T("Animal Presence"),
+                                                           T("Housing unit with currently animal presence"))),
+                           readable = True,
+                           writable = True,
+                           ),  
+                     s3_comments(),
+                     *s3_meta_fields())
+        
+        list_fields = ["id",
+                       "name",
+                       "status",
+                       "handicap_bath",
+                       "capacity_day",
+                       "capacity_night",                      
+                       "unit_availability_day",
+                       "unit_availability_night",
+                       ]
+        
+        population_onaccept = lambda form: \
+                                S3ShelterRegistrationModel.shelter_population_onaccept(form,
+                                                                                       tablename="cr_shelter_unit")
 
+        configure(tablename,
+                  deduplicate = self.cr_shelter_unit_duplicate,
+                  list_fields = list_fields,
+                  onaccept = population_onaccept,
+                  ondelete = population_onaccept,
+                  )
+                                 
+        represent = S3Represent(lookup="cr_shelter_unit")
+        housing_unit_id = S3ReusableField("shelter_unit_id", db.cr_shelter_unit,
+                                          label = "Housing Unit Name",
+                                          ondelete = "RESTRICT",
+                                          represent = represent,
+                                          requires = IS_NULL_OR(IS_ONE_OF(db, "cr_shelter_unit.id",                                             
+                                                                          represent,
+                                                                          orderby="shelter_id",
+                                     #                                     sort=True
+                                                                )),
+#                                          widget = S3AutocompleteWidget("cr", "shelter_unit")
+                                          )
+        
         # ---------------------------------------------------------------------
         # Pass variables back to global scope (response.s3.*)
         return dict(ADD_SHELTER = ADD_SHELTER,
                     SHELTER_LABEL = SHELTER_LABEL,
                     cr_shelter_id = shelter_id,
+                    cr_housing_unit_id = housing_unit_id,
                     )
 
     # -------------------------------------------------------------------------
@@ -658,6 +861,24 @@ class S3ShelterModel(S3Model):
             if row:
                 item.id = row.id
                 item.method = item.METHOD.UPDATE
+                
+    # -------------------------------------------------------------------------
+    @staticmethod
+    def cr_shelter_unit_duplicate(item):
+        """
+            Shelter housing unit record duplicate detection, used for the deduplicate hook
+
+            @param item: the S3ImportItem to check
+        """
+
+        if item.tablename == "cr_shelter_unit":
+            table = item.table
+            query = (table.name == item.data.name)
+            row = current.db(query).select(table.id,
+                                           limitby=(0, 1)).first()
+            if row:
+                item.id = row.id
+                item.method = item.METHOD.UPDATE
 
     # -------------------------------------------------------------------------
     @staticmethod
@@ -707,7 +928,6 @@ class S3ShelterRegistrationModel(S3Model):
     
     names = ["cr_shelter_allocation",
              "cr_shelter_registration",
-             "cr_shelter_housing_unit",
              ]
 
     def model(self):
@@ -721,195 +941,7 @@ class S3ShelterRegistrationModel(S3Model):
         settings = current.deployment_settings
         UNKNOWN_OPT = messages.UNKNOWN_OPT
         
-        cr_housing_unit_opts = {1 : T("Available"),
-                                2 : T("Not Available"),
-                                }
-        cr_housing_unit_handicap_facilities = {1: T("Available"),
-                                               2: T("Suitable"),
-                                               3: T("Not Available")
-                                               }
         
-        tablename = "cr_shelter_housing_unit"
-        define_table(tablename,
-                     self.cr_shelter_id(ondelete="CASCADE"),
-                     Field("name", notnull=True,
-                           label = "name",
-                           ),
-                     Field("status", "integer",
-                           default = 1,
-                           label = T("Status"),
-                           represent = lambda opt: \
-                               cr_housing_unit_opts.get(opt, messages.UNKNOWN_OPT),
-                           requires = IS_EMPTY_OR(
-                                       IS_IN_SET(cr_housing_unit_opts))
-                           ),
-                     
-                     Field("bath", "boolean",
-                           default = True,
-                           label = T("Available Bath"),
-                           comment = DIV(_class="tooltip",
-                                         _title="%s|%s" % (T("Bath Availability"),
-                                                           T("Integrated bath within housing unit"))),
-                           readable = True,
-                           writable = True,
-                           ),
-                     Field("handicap_bath", "integer",
-                           default = 1,
-                           label = T("Bath with handicap facilities"),
-                           represent = lambda opt: \
-                               cr_housing_unit_handicap_facilities.get(opt, messages.UNKNOWN_OPT),
-                           requires = IS_EMPTY_OR(
-                                       IS_IN_SET(cr_housing_unit_handicap_facilities)),
-                           comment = DIV(_class="tooltip",
-                                         _title="%s|%s" % (T("Bath Handicap Facilities"),
-                                                           T("Availability of bath handicap facilities"))),
-                           readable = True,
-                           writable = True,
-                           ),
-                     Field("shower", "boolean",
-                           default = True,
-                           label = T("Available Shower"),
-                           comment = DIV(_class="tooltip",
-                                         _title="%s|%s" % (T("Shower Availability"),
-                                                           T("Integrated shower within housing unit"))),
-                           readable = True,
-                           writable = True,
-                           ),
-                     Field("handicap_shower", "integer",
-                           default = 1,
-                           label = T("Shower with handicap facilities"),
-                           represent = lambda opt: \
-                               cr_housing_unit_handicap_facilities.get(opt, messages.UNKNOWN_OPT),
-                           requires = IS_EMPTY_OR(
-                                       IS_IN_SET(cr_housing_unit_handicap_facilities)),
-                           comment = DIV(_class="tooltip",
-                                         _title="%s|%s" % (T("Shower Handicap Facilities"),
-                                                           T("Availability of shower handicap facilities"))),
-                           readable = True,
-                           writable = True,
-                           ),
-                     Field("capacity_day", "integer",
-                           default = 0,
-                           label = T("Housing Unit Capacity (Day and Night)"),                    
-                           represent = lambda v: IS_INT_AMOUNT.represent(v),
-                           requires = IS_EMPTY_OR(
-                                        IS_INT_IN_RANGE(0, 999999)),
-                           readable = True,
-                           writable = True,       
-                           comment = DIV(_class="tooltip",
-                                         _title="%s|%s" % (T("Module Day and Night Capacity"),
-                                                           T("Capacity of the housing unit for people who need to stay both day and night"))),           
-                           ),
-                     Field("capacity_night", "integer",
-                           default = 0,
-                           label = T("Housing Unit Capacity (Night)"),                    
-                           represent = lambda v: IS_INT_AMOUNT.represent(v),
-                           requires = IS_EMPTY_OR(
-                                        IS_INT_IN_RANGE(0, 999999)),
-                           readable = True,
-                           writable = True,       
-                           comment = DIV(_class="tooltip",
-                                         _title="%s|%s" % (T("Module Night Capacity"),
-                                                           T("Capacity of the housing unit for people who need to stay both day and night"))),           
-                           ),
-                     Field("available_capacity_day", "integer",
-                           default = 0,
-                           label = T("Population Availability (Day and Night)"),
-                           represent = lambda v: IS_INT_AMOUNT.represent(v),
-                           requires = IS_EMPTY_OR(
-                                        IS_INT_IN_RANGE(0, 999999)),
-                           comment = DIV(_class="tooltip",
-                                         _title="%s" % (T("Current Population Availability (Day and Night)"))),
-                           # Automatically updated
-                           writable = False
-                           ),
-                     Field("available_capacity_night", "integer",
-                           default = 0,
-                           label = T("Population Availability (Night)"),
-                           represent = lambda v: IS_INT_AMOUNT.represent(v),
-                           requires = IS_EMPTY_OR(
-                                        IS_INT_IN_RANGE(0, 999999)),
-                           comment = DIV(_class="tooltip",
-                                         _title="%s" % (T("Current Population Availability (Night)"))),
-                           # Automatically updated
-                           writable = False
-                           ),
-                     Field("population_day", "integer",
-                           default = 0,
-                           label = T("Current Population (Day and Night)"),
-                           represent = lambda v: IS_INT_AMOUNT.represent(v),
-                           requires = IS_EMPTY_OR(
-                                        IS_INT_IN_RANGE(0, 999999)),
-                           comment = DIV(_class="tooltip",
-                                         _title="%s|%s" % (T("Housing Unit Current Population"),
-                                                           T("Number of evacuees registered in this housing unit (Day and Night)"))),
-                           readable = False,
-                           # Automatically updated
-                           writable = False
-                           ),
-                     Field("population_night", "integer",
-                           default = 0,
-                           label = T("Current Population (Night)"),
-                           represent = lambda v: IS_INT_AMOUNT.represent(v),
-                           requires = IS_EMPTY_OR(
-                                        IS_INT_IN_RANGE(0, 999999)),
-                           comment = DIV(_class="tooltip",
-                                         _title="%s|%s" % (T("Housing Unit Current Population"),
-                                                           T("Number of evacuees registered in this housing unit (Night)"))),
-                           readable = False,
-                           # Automatically updated
-                           writable = False
-                           ),
-                     Field("animal_presence", "boolean",
-                           default = False,
-                           label = T("Animal presence"),
-                           comment = DIV(_class="tooltip",
-                                         _title="%s|%s" % (T("Animal Presence"),
-                                                           T("Housing unit with currently animal presence"))),
-                           readable = True,
-                           writable = True,
-                           ),  
-                     s3_comments(),
-                     *s3_meta_fields())
-        
-        list_fields = ["id",
-                       "name",
-                       "status",
-                       "capacity_day",
-                       "capacity_night",
-                       "handicap_bath",
-                       #"shelter_service_id",
-                       "unit_availability_day",
-                       "unit_availability_night",
-                       ]
-        
-        population_onaccept = lambda form: \
-                              self.shelter_population_onaccept(form,
-                                                        tablename="cr_shelter_housing_unit")
-
-        configure(tablename,
-                  list_fields = list_fields,
-                  onaccept = population_onaccept,
-                  ondelete = population_onaccept,
-                  )
-        
-        # Selection of housing units associated to specific shelter       
-        if not len(current.request.args):
-            shelter_filter = ""
-        else:
-            shelter_filter = current.request.args[0]        
-        represent = S3Represent(lookup=tablename)
-        housing_unit_id = S3ReusableField("shelter_housing_unit_id", db.cr_shelter_housing_unit,
-                                          label = "Housing Unit",
-                                          ondelete = "RESTRICT",
-                                          represent = represent,
-                                          requires = IS_NULL_OR(IS_ONE_OF(db, "cr_shelter_housing_unit.id",                                             
-                                                                          represent,
-                                                                          filterby="shelter_id",
-                                                                          filter_opts=(shelter_filter,),
-                                                                          orderby="cr_shelter_housing_unit.name")),
-                                          )
-       
         # ---------------------------------------------------------------------
         # Shelter Allocation: table to allocate shelter capacity to a group
         #
@@ -937,8 +969,8 @@ class S3ShelterRegistrationModel(S3Model):
                      *s3_meta_fields())
 
         population_onaccept = lambda form: \
-                              self.shelter_population_onaccept(form,
-                                                        tablename="cr_shelter_allocation")
+                                self.shelter_population_onaccept(form,
+                                                                 tablename="cr_shelter_allocation")
 
         configure(tablename,
                   onaccept = population_onaccept,
@@ -958,6 +990,7 @@ class S3ShelterRegistrationModel(S3Model):
                                        }
         housing_unit = settings.get_cr_shelter_housing_unit_management()
         
+        
         tablename = "cr_shelter_registration"
         self.define_table(tablename,
                           self.cr_shelter_id(ondelete="CASCADE"),
@@ -972,8 +1005,9 @@ class S3ShelterRegistrationModel(S3Model):
                                                               )
                                             ),
                               ),
-                          housing_unit_id(readable = housing_unit,
-                                          writable = housing_unit,),           
+                          self.cr_housing_unit_id(readable = housing_unit,
+                                                  writable = housing_unit,
+                                                  ),           
                           Field("day_or_night", "integer",
                                 label = T("Presence in the shelter"),
                                 represent = S3Represent(
@@ -1005,13 +1039,12 @@ class S3ShelterRegistrationModel(S3Model):
                           *s3_meta_fields())
 
         population_onaccept = lambda form: \
-            self.shelter_population_onaccept(form,
-                                             tablename="cr_shelter_registration")
+                                    self.shelter_population_onaccept(form,
+                                                                    tablename="cr_shelter_registration")
         configure(tablename,
                   onaccept = population_onaccept,
                   ondelete = population_onaccept,
                   )
-        
         
         # ---------------------------------------------------------------------
         # Pass variables back to global scope (response.s3.*)
@@ -1031,20 +1064,23 @@ class S3ShelterRegistrationModel(S3Model):
         
         try:
             if type(form) is Row:
-                record_id = form.id                                                        
+                record_id = form.id  
+#                if housing_unit:
+#                    record_housing_unit_id = form.shelter_unit_id                                                     
             else:
                 record_id = form.vars.id
+#                if housing_unit:
+#                    record_housing_unit_id = form.shelter_unit_id
         except:
             # Nothing we can do
             return
-        
-      
+                  
         row = db(table._id == record_id).select(table._id,
                                                 table.shelter_id,
                                                 table.deleted,
                                                 table.deleted_fk,
                                                 limitby=(0, 1)).first()
-                                                
+                                                                                                 
         if row:
             if row.deleted:
                 if row.deleted_fk:
@@ -1056,6 +1092,12 @@ class S3ShelterRegistrationModel(S3Model):
                 shelter_id = row.shelter_id
             if shelter_id:
                 if housing_unit:
+                    htable = db.cr_shelter_unit
+                    
+#                    record = 
+                    
+                    error = current.T("Cannot make an Organization a branch of itself!")
+                    current.response.error = error
                     cr_update_capacity_from_housing_units(shelter_id)                                 
                 cr_update_shelter_population(shelter_id)
                                     
@@ -1081,9 +1123,10 @@ def cr_shelter_rheader(r, tabs=[]):
                         (T("People Reservation"), "shelter_allocation"),
                         (T("People Registration"), "shelter_registration"),
                         ]
+                        
                 settings = current.deployment_settings
                 if settings.get_cr_shelter_housing_unit_management():
-                    tabs.append((T("Housing Units"), "shelter_housing_unit"))
+                    tabs.append((T("Housing Units"), "shelter_unit"))
                     
                 #if settings.has_module("assess"):
                 #    tabs.append((T("Assessments"), "rat"))
@@ -1130,7 +1173,7 @@ def cr_update_housing_unit_population(shelter_id):
     """
     db = current.db
     
-    htable = db.cr_shelter_housing_unit
+    htable = db.cr_shelter_unit
     rtable = db.cr_shelter_registration
           
     query = (htable.shelter_id == shelter_id) & \
@@ -1147,7 +1190,7 @@ def cr_update_housing_unit_population(shelter_id):
         unit_id = row.id
                 
         query_d = (rtable.shelter_id == shelter_id) & \
-                  (rtable.shelter_housing_unit_id == unit_id) & \
+                  (rtable.shelter_unit_id == unit_id) & \
                   (rtable.registration_status != 3) & \
                   (rtable.day_or_night == 2) & \
                   (rtable.deleted != True)
@@ -1155,7 +1198,7 @@ def cr_update_housing_unit_population(shelter_id):
         population_day = len(db(query_d).select(rtable.id))
         
         query_n = (rtable.shelter_id == shelter_id) & \
-                  (rtable.shelter_housing_unit_id == unit_id) & \
+                  (rtable.shelter_unit_id == unit_id) & \
                   (rtable.registration_status != 3) & \
                   (rtable.day_or_night == 1) & \
                   (rtable.deleted != True)
@@ -1296,7 +1339,7 @@ def cr_check_population_availability(unit_id, table):
     
     if table._tablename == "cr_shelter":
         resource = "shelter"
-    elif table._tablename == "cr_shelter_housing_unit":
+    elif table._tablename == "cr_shelter_unit":
         resource = "housing unit"
             
     if (cap_day is not None) and (pop_day > cap_day):           
@@ -1323,7 +1366,7 @@ def cr_update_capacity_from_housing_units(shelter_id):
     db = current.db
         
     stable = db.cr_shelter
-    htable = db.cr_shelter_housing_unit
+    htable = db.cr_shelter_unit
         
     total_capacity_day = 0
     total_capacity_night = 0

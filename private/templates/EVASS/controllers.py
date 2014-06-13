@@ -90,18 +90,12 @@ $('#login-btn').click(function(){
         else:
             output["event_list"] = self.event_list()
             output["shelter_list"] = self.shelter_list()
-            output["organizations_btn"] = self.organizations_btn()
             output["events_btn"] = self.events_btn()
-#            output["projects_btn"] = self.projects_btn()
-#            output["incident_reports_btn"] = self.incident_reports_btn()
             output["pr_btn"] = self.pr_btn()
             output["staff_btn"] = self.staff_btn()
             output["volunteers_btn"] = self.volunteers_btn()
             output["evacuees_btn"] = self.evacuees_btn()
-#            output["warehouses_btn"] = self.warehouses_btn()
-#            output["transports_btn"] = self.transports_btn()
             output["shelters_btn"] = self.shelters_btn()
-#            output["hospitals_btn"] = self.hospitals_btn()
 
         output["self_registration"] = self_registration
         output["registered"] = registered
@@ -211,13 +205,6 @@ google.setOnLoadCallback(LoadDynamicFeedControl)'''))
             # @todo: check permission and provide an "Add Event" button
             #        if not events are yet registered?
             return ""
-
-    # -------------------------------------------------------------------------
-    def organizations_btn(self):
-        return LI(A("Organizations",
-                    _href=URL(c="org", f="organisation"),
-                    _class="button button-home")
-                  )
 
     # -------------------------------------------------------------------------
     def events_btn(self):
