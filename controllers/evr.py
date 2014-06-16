@@ -107,7 +107,7 @@ def person():
                                         "gender",
                                         "person_details.marital_status",
                                         "person_details.nationality",
-                                        #"person_details.religion",
+                                        "person_details.religion",
                                         "person_details.occupation",
                                         #"person_details.company",
                                         "comments",

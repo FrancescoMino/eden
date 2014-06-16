@@ -1006,6 +1006,9 @@ class S3PersonModel(S3Model):
                        evr_background = {"joinby": "person_id",
                                          "multiple": False,
                                          },
+                       evr_attachment={"joinby": "person_id",
+                                       "multiple": False,
+                                       },
 
                        # Shelter (Camp) Registry
                        cr_shelter_registration = {"joinby": "person_id",

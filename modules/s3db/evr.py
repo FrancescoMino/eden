@@ -31,6 +31,7 @@ __all__ = ["S3EVRCaseModel",
            "evr_rheader",
            "evr_AddGroupMembers",
            ]
+import os
 
 from gluon import *
 from gluon.storage import Storage
@@ -49,6 +50,8 @@ class S3EVRCaseModel(S3Model):
         db = current.db
         define_table = self.define_table
         person_id = self.pr_person_id
+        
+        folder = current.request.folder
 
         # ---------------------------------------------------------------------
         # Case Data
@@ -414,15 +417,15 @@ def evr_rheader(r):
                 (T("Images"), "image"),
                 (T("Medical Information"), "medical_details"),
                 (T("Socio-Economic Background"), "background"),
-                (T("Attachments"), "attachment")
-                ] 
-                     
+#                (T("Attachments"), "attachment")
+                ]                   
         if settings.get_evr_show_physical_description():
             tabs.append((T("Physical Description"), "physical_description"))
         
         if settings.has_module("cr"):
-            tabs.append((T("Shelter Registration"), "shelter_registration"))
-
+            tabs.append((T("Shelter Registration"), "shelter_registration"))    
+        tabs.append((T("Attachments"), "attachment"))
+        
         rheader_fields = [["first_name", "last_name"],
                           ["date_of_birth"],
                           ]
