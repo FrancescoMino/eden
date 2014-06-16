@@ -419,7 +419,8 @@ class S3OptionsMenu(object):
                 )
 
     # -------------------------------------------------------------------------
-    def assess(self):
+    @staticmethod
+    def assess():
         """ ASSESS Menu """
 
         #ADMIN = current.session.s3.system_roles.ADMIN
@@ -456,7 +457,8 @@ class S3OptionsMenu(object):
 
 
     # -------------------------------------------------------------------------
-    def asset(self):
+    @staticmethod
+    def asset():
         """ ASSET Controller """
 
         ADMIN = current.session.s3.system_roles.ADMIN
@@ -496,7 +498,8 @@ class S3OptionsMenu(object):
                 )
 
     # -------------------------------------------------------------------------
-    def budget(self):
+    @staticmethod
+    def budget():
         """ BUDGET Controller """
 
         return M(c="budget")(
@@ -525,7 +528,8 @@ class S3OptionsMenu(object):
                 )
 
     # -------------------------------------------------------------------------
-    def building(self):
+    @staticmethod
+    def building():
         """ BUILDING Controller """
 
         return M(c="building")(
@@ -546,15 +550,17 @@ class S3OptionsMenu(object):
                 )
 
     # -------------------------------------------------------------------------
-    def cap(self):
+    @staticmethod
+    def cap():
         """ CAP menu """
 
         return M(c="cap")(
-                    M("Alerts", f="alert", vars={'alert.is_template': 'false'})(
-                        M("Create Alert", f="alert", m="create"),
+                    M("Alerts", f="alert")(
+                        M("Create", m="create"),
+                        M("Import", m="import", p="create"),
                     ),
-                    M("Templates", f="template", vars={'alert.is_template': 'true'})(
-                        M("Create Template", f="template", m="create"),
+                    M("Templates", f="template")(
+                        M("Create", m="create"),
                     ),
                     #M("CAP Profile", f="profile")(
                     #    M("Edit profile", f="profile")
@@ -562,7 +568,8 @@ class S3OptionsMenu(object):
                 )
 
     # -------------------------------------------------------------------------
-    def cr(self):
+    @staticmethod
+    def cr():
         """ CR / Shelter Registry """
 
         ADMIN = current.session.s3.system_roles.ADMIN
@@ -590,7 +597,8 @@ class S3OptionsMenu(object):
                 )
 
     # -------------------------------------------------------------------------
-    def cms(self):
+    @staticmethod
+    def cms():
         """ CMS / Content Management System """
 
         return M(c="cms")(
@@ -607,7 +615,8 @@ class S3OptionsMenu(object):
                 )
 
     # -------------------------------------------------------------------------
-    def delphi(self):
+    @staticmethod
+    def delphi():
         """ DELPHI / Delphi Decision Maker """
 
         ADMIN = current.session.s3.system_roles.ADMIN
@@ -630,7 +639,8 @@ class S3OptionsMenu(object):
                 )
 
     # -------------------------------------------------------------------------
-    def deploy(self):
+    @staticmethod
+    def deploy():
         """ Deployments """
 
         return M()(M("Missions",
@@ -663,7 +673,8 @@ class S3OptionsMenu(object):
                   )
 
     # -------------------------------------------------------------------------
-    def doc(self):
+    @staticmethod
+    def doc():
         """ DOC Menu """
 
         return M(c="doc")(
@@ -679,7 +690,8 @@ class S3OptionsMenu(object):
                 )
 
     # -------------------------------------------------------------------------
-    def dvi(self):
+    @staticmethod
+    def dvi():
         """ DVI / Disaster Victim Identification """
 
         return M(c="dvi")(
@@ -710,7 +722,8 @@ class S3OptionsMenu(object):
                 )
 
     # -------------------------------------------------------------------------
-    def dvr(self):
+    @staticmethod
+    def dvr():
         """ DVR Menu """
 
         return M(c="dvr")(
@@ -721,7 +734,8 @@ class S3OptionsMenu(object):
                 )
 
     # -------------------------------------------------------------------------
-    def event(self):
+    @staticmethod
+    def event():
         """ EVENT / Event Module """
 
         return M()(
@@ -746,7 +760,8 @@ class S3OptionsMenu(object):
                 )
 
     # -------------------------------------------------------------------------
-    def fire(self):
+    @staticmethod
+    def fire():
         """ FIRE """
 
         return M(c="fire")(
@@ -783,7 +798,8 @@ class S3OptionsMenu(object):
                 )
 
     # -------------------------------------------------------------------------
-    def gis(self):
+    @staticmethod
+    def gis():
         """ GIS / GIS Controllers """
 
         MAP_ADMIN = current.session.s3.system_roles.MAP_ADMIN
@@ -869,7 +885,8 @@ class S3OptionsMenu(object):
                 )
 
     # -------------------------------------------------------------------------
-    def hms(self):
+    @staticmethod
+    def hms():
         """ HMS / Hospital Status Assessment and Request Management """
 
         #s3 = current.response.s3
@@ -877,7 +894,6 @@ class S3OptionsMenu(object):
         return M(c="hms")(
                     M("Hospitals", f="hospital")(
                         M("Create", m="create"),
-                        #M("Search"),
                         M("Map", m="map"),
                         M("Report", m="report"),
                         M("Import", m="import", p="create"),
@@ -889,7 +905,8 @@ class S3OptionsMenu(object):
                 )
 
     # -------------------------------------------------------------------------
-    def hrm(self):
+    @staticmethod
+    def hrm():
         """ HRM / Human Resources Management """
 
         s3 = current.session.s3
@@ -978,7 +995,8 @@ class S3OptionsMenu(object):
                 )
 
     # -------------------------------------------------------------------------
-    def vol(self):
+    @staticmethod
+    def vol():
         """ Volunteer Management """
 
         s3 = current.session.s3
@@ -1089,7 +1107,8 @@ class S3OptionsMenu(object):
                 )
 
     # -------------------------------------------------------------------------
-    def inv(self):
+    @staticmethod
+    def inv():
         """ INV / Inventory """
 
         ADMIN = current.session.s3.system_roles.ADMIN
@@ -1189,7 +1208,8 @@ class S3OptionsMenu(object):
                 )
 
     # -------------------------------------------------------------------------
-    def irs(self):
+    @staticmethod
+    def irs():
         """ IRS / Incident Report System """
 
         ADMIN = current.session.s3.system_roles.ADMIN
@@ -1213,7 +1233,8 @@ class S3OptionsMenu(object):
                 )
 
     # -------------------------------------------------------------------------
-    def security(self):
+    @staticmethod
+    def security():
         """ Security Management System """
 
         ADMIN = current.session.s3.system_roles.ADMIN
@@ -1282,7 +1303,8 @@ class S3OptionsMenu(object):
         return self.inv()
 
     # -------------------------------------------------------------------------
-    def survey(self):
+    @staticmethod
+    def survey():
         """ SURVEY / Survey """
 
         ADMIN = current.session.s3.system_roles.ADMIN
@@ -1322,7 +1344,8 @@ class S3OptionsMenu(object):
                 )
 
     # -------------------------------------------------------------------------
-    def member(self):
+    @staticmethod
+    def member():
         """ Membership Management """
 
         return M(c="member")(
@@ -1340,13 +1363,13 @@ class S3OptionsMenu(object):
                 )
 
     # -------------------------------------------------------------------------
-    def mpr(self):
+    @staticmethod
+    def mpr():
         """ MPR / Missing Person Registry """
 
         return M(c="mpr")(
                     M("Missing Persons", f="person")(
                         M("Create", m="create"),
-                        #M("Search"),
                     ),
                 )
 
@@ -1394,7 +1417,8 @@ class S3OptionsMenu(object):
 
 
     # -------------------------------------------------------------------------
-    def org(self):
+    @staticmethod
+    def org():
         """ ORG / Organization Registry """
 
         ADMIN = current.session.s3.system_roles.ADMIN
@@ -1440,18 +1464,19 @@ class S3OptionsMenu(object):
                 )
 
     # -------------------------------------------------------------------------
-    def patient(self):
+    @staticmethod
+    def patient():
         """ PATIENT / Patient Tracking """
 
         return M(c="patient")(
                     M("Patients", f="patient")(
                         M("Create", m="create"),
-                        #M("Search"),
                     )
                 )
 
     # -------------------------------------------------------------------------
-    def pr(self):
+    @staticmethod
+    def pr():
         """ PR / Person Registry """
 
         ADMIN = current.session.s3.system_roles.ADMIN
@@ -1459,31 +1484,29 @@ class S3OptionsMenu(object):
         return M(c="pr", restrict=ADMIN)(
                     M("Persons", f="person")(
                         M("Create", m="create"),
-                        #M("Search"),
                     ),
                     M("Groups", f="group")(
                         M("Create", m="create"),
-                        #M("Search"),
                     ),
                 )
 
     # -------------------------------------------------------------------------
-    def proc(self):
+    @staticmethod
+    def proc():
         """ PROC / Procurement """
 
         return M(c="proc")(
                     M("Procurement Plans", f="plan")(
                         M("Create", m="create"),
-                        #M("Search"),
                     ),
                     M("Suppliers", f="supplier")(
                         M("Create", m="create"),
-                        #M("Search"),
                     ),
                 )
 
     # -------------------------------------------------------------------------
-    def project(self):
+    @staticmethod
+    def project():
         """ PROJECT / Project Tracking & Management """
 
         settings = current.deployment_settings
@@ -1626,7 +1649,8 @@ class S3OptionsMenu(object):
         return menu
 
     # -------------------------------------------------------------------------
-    def req(self):
+    @staticmethod
+    def req():
         """ REQ / Request Management """
 
         ADMIN = current.session.s3.system_roles.ADMIN
@@ -1674,17 +1698,16 @@ class S3OptionsMenu(object):
                 )
 
     # -------------------------------------------------------------------------
-    def stats(self):
+    @staticmethod
+    def stats():
         """ Statistics """
 
         return M(c="stats")(
                     M("Demographics", f="demographic")(
                         M("Create", m="create"),
-                        #M("Search"),
                     ),
                     M("Demographic Data", f="demographic_data")(
                         M("Create", m="create"),
-                        #M("Search"),
                         M("Import", m="import"),
                     ),
                 )
@@ -1697,14 +1720,14 @@ class S3OptionsMenu(object):
         return self.admin()
 
     # -------------------------------------------------------------------------
-    def tour(self):
+    @staticmethod
+    def tour():
         """ Guided Tour """
 
         ADMIN = current.session.s3.system_roles.ADMIN
 
         return M(c="tour")(
                     M("Configuration", f="config", restrict=[ADMIN])(
-                        #M("Search"),
                         M("Import", m="import", restrict=[ADMIN]),
                         ),
                     M("Detail", f="details", restrict=[ADMIN]),
@@ -1713,7 +1736,8 @@ class S3OptionsMenu(object):
 
 
     # -------------------------------------------------------------------------
-    def transport(self):
+    @staticmethod
+    def transport():
         """ TRANSPORT """
 
         ADMIN = current.session.s3.system_roles.ADMIN
@@ -1721,76 +1745,69 @@ class S3OptionsMenu(object):
         return M(c="transport")(
                     M("Airports", f="airport")(
                         M("Create", m="create"),
-                        #M("Search"),
                         M("Map", m="map"),
                         M("Import", m="import", restrict=[ADMIN]),
                     ),
                     M("Seaports", f="seaport")(
                         M("Create", m="create"),
-                        #M("Search"),
                         M("Map", m="map"),
                         M("Import", m="import", restrict=[ADMIN]),
                     ),
                 )
 
     # -------------------------------------------------------------------------
-    def vehicle(self):
+    @staticmethod
+    def vehicle():
         """ VEHICLE / Vehicle Tracking """
 
         return M(c="vehicle")(
                     M("Vehicles", f="vehicle")(
                         M("Create", m="create"),
-                        #M("Search"),
                         M("Map", m="map"),
                     ),
                     M("Vehicle Types", f="item")(
                         M("Create", m="create"),
-                        #M("Search"),
                     ),
                 )
 
     # -------------------------------------------------------------------------
-    def vulnerability(self):
+    @staticmethod
+    def vulnerability():
         """ Vulnerability """
 
         return M(c="vulnerability")(
                     M("Indicators", f="indicator")(
                         M("Create", m="create"),
-                        #M("Search"),
                     ),
                     M("Data", f="data")(
                         M("Create", m="create"),
-                        #M("Search"),
                         M("Import", m="import"),
                     ),
                 )
 
     # -------------------------------------------------------------------------
-    def water(self):
+    @staticmethod
+    def water():
         """ Water: Floods, etc """
 
         return M(c="water")(
                     M("Gauges", f="gauge")(
                         M("Create", m="create"),
-                        #M("Search"),
                         M("Map", m="map"),
                         M("Import", m="import"),
                     ),
                     M("Rivers", f="river")(
                         M("Create", m="create"),
-                        #M("Search"),
                         M("Map", m="map"),
                         #M("Import", m="import"),
                     ),
                     M("Zones", f="zone")(
                         M("Create", m="create"),
-                        #M("Search"),
                         M("Map", m="map"),
                         #M("Import", m="import"),
                     ),
                     M("Zone Types", f="zone_type")(
                         M("Create", m="create"),
-                        #M("Search"),
                         M("Map", m="map"),
                         #M("Import", m="import"),
                     ),
@@ -1873,6 +1890,5 @@ class S3OptionsMenu(object):
                                    # anywhere...
                                    vars=item.vars))
         return breadcrumbs
-#-----------------------------------------------------------------------
 
 # END =========================================================================

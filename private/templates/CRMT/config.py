@@ -151,7 +151,7 @@ settings.base.youtube_id = [dict(id = "introduction",
 
 # -----------------------------------------------------------------------------
 # Menu
-current.response.menu = [
+menu = [
     {"name": T("Organizations"),
      "c":"org", 
      "f":"organisation",
@@ -196,8 +196,10 @@ current.response.menu = [
      },
     ]
 
-for item in current.response.menu:
+for item in menu:
     item["url"] = URL(item["c"], item["f"])
+
+current.response.menu = menu
 
 # -----------------------------------------------------------------------------
 # Summary Pages
@@ -435,7 +437,7 @@ def customise_pr_person_controller(**attr):
                            )
 
         if r.interactive:
-            if current.request.controller != "default":
+            if r.controller != "default":
                 # CRUD Strings
                 s3.crud_strings[tablename] = Storage(
                     label_create = T("Add"),
@@ -849,6 +851,19 @@ def org_facility_types(row):
     return ",".join([r.name for r in rows])
 
 # -----------------------------------------------------------------------------
+def org_organisation_postprocess(form):
+    """
+        onaccept for the Custom Form:
+        - replace the name of the Fac with the name of the Org
+    """
+
+    form_vars = form.vars
+    organisation_id = form_vars.get("id", None)
+    name = form_vars.get("name", None)
+    ftable = current.s3db.org_facility
+    current.db(ftable.organisation_id == organisation_id).update(name = name)
+
+# -----------------------------------------------------------------------------
 def customise_org_organisation_controller(**attr):
 
     # Custom PreP
@@ -966,22 +981,33 @@ def customise_org_organisation_controller(**attr):
                 from s3.s3forms import S3SQLCustomForm, S3SQLInlineComponent, S3SQLInlineComponentMultiSelectWidget
 
                 ftable = s3db.org_facility
+                ftable.name.default = "TEMP" # replace in form postprocess
                 field = ftable.location_id
                 field.label = T("Address")
                 field.represent = s3db.gis_LocationRepresent(address_only=True)
+                from s3.s3validators import IS_LOCATION_SELECTOR2
+                from s3.s3widgets import S3LocationSelectorWidget2
+                levels = ("L3",)
+                field.requires = IS_LOCATION_SELECTOR2(levels=levels)
+                field.widget = S3LocationSelectorWidget2(levels=levels,
+                                                         hide_lx=False,
+                                                         reverse_lx=True,
+                                                         show_address=True,
+                                                         show_postcode=True,
+                                                         )
                 # We don't have a widget capable of creating/editing Locations inline
-                field.widget = None
-                field.writable = False
+                #field.widget = None
+                #field.writable = False
                 # s3forms passes even read-only fields through validation
-                field.requires = None
-                s3db.configure("org_facility",
-                               #editable = False,
-                               insertable = False,
-                               )
+                #field.requires = None
+                #s3db.configure("org_facility",
+                #               #editable = False,
+                #               insertable = False,
+                #               )
                 # We can't include components in an Inline Component
                 # => use a readonly virtual field instead
-                from gluon import Field
-                ftable.facility_types = Field.Method("facility_types", org_facility_types)
+                #from gluon import Field
+                #ftable.facility_types = Field.Method("facility_types", org_facility_types)
 
                 hrtable = s3db.hrm_human_resource
                 hrtable.person_id.widget = None
@@ -1018,10 +1044,17 @@ def customise_org_organisation_controller(**attr):
                 s3db.org_resource.parameter_id.widget = S3MultiSelectWidget(multiple=False)
                 mtable = s3db.org_group_membership
                 mtable.group_id.widget = S3MultiSelectWidget(multiple=False)
+                #from s3layouts import S3AddResourceLink
+                #mtable.status_id.comment = S3AddResourceLink(c="org",
+                #                                             f="group_membership_status",
+                #                                             vars={"child": "status_id"},
+                #                                             title=T("Add New Status"))
+                mtable.status_id.comment = T("Status of the Organization in the Coalition")
                 mtable.status_id.widget = S3MultiSelectWidget(multiple=False,
+                                                              # NB Has no permissions checks
                                                               create=dict(c="org",
                                                                           f="group_membership_status",
-                                                                          label="%s..." % T("Add New Status"),
+                                                                          label=str(T("Add New Status")),
                                                                           parent="group_membership",
                                                                           child="status_id"
                                                                           ))
@@ -1032,7 +1065,7 @@ def customise_org_organisation_controller(**attr):
                         "group_membership",
                         label = T("Coalition Member"),
                         fields = [("", "group_id"),
-                                  (T("Status of the Organization in the Coalition"), "status_id"),
+                                  ("", "status_id"),
                                   ],
                     ),
                     S3SQLInlineComponentMultiSelectWidget(
@@ -1063,6 +1096,14 @@ def customise_org_organisation_controller(**attr):
                         filterby = dict(field = "contact_method",
                                         options = "TWITTER"
                                         )
+                    ),
+                    # Not fully ready yet
+                    S3SQLInlineComponent(
+                        "facility",
+                        label = T("Address"),
+                        fields = [("", "location_id"),
+                                  ],
+                        multiple = False,
                     ),
                     "comments",
                 ]
@@ -1104,21 +1145,22 @@ def customise_org_organisation_controller(**attr):
                         label = T("Organization's Contacts"),
                         fields = hr_fields,
                     ))
-                    form_fields.insert(6, S3SQLInlineComponent(
-                        "facility",
-                        label = T("Organization's Places"),
-                        fields = ["name", 
-                                  # Only fields within the table are supported
-                                  #"facility_type.facility_type_id",
-                                  "location_id",
-                                  ],
-                        # Fields needed to load for Virtual Fields
-                        extra_fields = ["site_id"],
-                        virtual_fields = [(T("Type"), "facility_types"),
-                                          ],
-                    ))
+                    #form_fields.insert(6, S3SQLInlineComponent(
+                    #    "facility",
+                    #    label = T("Organization's Places"),
+                    #    fields = ["name", 
+                    #              # Only fields within the table are supported
+                    #              #"facility_type.facility_type_id",
+                    #              "location_id",
+                    #              ],
+                    #    # Fields needed to load for Virtual Fields
+                    #    extra_fields = ["site_id"],
+                    #    virtual_fields = [(T("Type"), "facility_types"),
+                    #                      ],
+                    #))
 
-                crud_form = S3SQLCustomForm(*form_fields)
+                crud_form = S3SQLCustomForm(*form_fields,
+                                            postprocess = org_organisation_postprocess)
                 s3db.configure(tablename,
                                crud_form = crud_form,
                                )
