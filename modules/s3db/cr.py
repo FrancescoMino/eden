@@ -156,7 +156,7 @@ class S3ShelterModel(S3Model):
         define_table(tablename,
                      Field("name", notnull=True,
                            label = NAME,
-                           ),                   
+                           ),
                      s3_comments(),
                      *s3_meta_fields())
 
@@ -278,7 +278,7 @@ class S3ShelterModel(S3Model):
                                          _title="%s|%s" % (T("Capacity (Night only)"),
                                                            T("Capacity of the shelter for people who need to stay for night only"))),
                            ),
-                     #Dynamic fields
+                     #Dynamic field
                      Field("available_capacity_day", "integer",
                            default = 0,
                            label = T("Evacuees Available Capacity (Day and Night)"),
@@ -289,6 +289,7 @@ class S3ShelterModel(S3Model):
                            # Automatically updated
                            writable = False,
                            ),
+                     #Dynamic field
                      Field("available_capacity_night", "integer",
                            default = 0,
                            label = T("Evacuees Available Capacity (Night only)"),
@@ -299,6 +300,7 @@ class S3ShelterModel(S3Model):
                            # Automatically updated
                            writable = False,
                            ),
+                     #Dynamic field
                      Field("population_day", "integer",
                            default = 0,
                            label = T("Evacuees Current Population (Day and Night)"),
@@ -312,6 +314,7 @@ class S3ShelterModel(S3Model):
                            # Automatically updated
                            writable = False
                            ),
+                     #Dynamic field
                      Field("population_night", "integer",
                            default = 0,
                            label = T("Evacuues Current Population (Night only)"),
@@ -326,7 +329,6 @@ class S3ShelterModel(S3Model):
                            writable = False
                            ),
                      Field("status", "integer",
-                           default = 2,
                            label = T("Status"),
                            represent = lambda opt: \
                                cr_shelter_opts.get(opt, messages.UNKNOWN_OPT),
@@ -495,7 +497,7 @@ class S3ShelterModel(S3Model):
                                                                                        T("optional"))),
                                      widget = S3AutocompleteWidget("cr", "shelter")
                                      )
-        
+        # Shelter registration used in evr module
         if current.request.controller == "evr":
             self.add_components(tablename,
                             cr_shelter_allocation = "shelter_id",
@@ -933,14 +935,11 @@ class S3ShelterRegistrationModel(S3Model):
     def model(self):
         
         T = current.T
-        db = current.db
         
         define_table = self.define_table
         configure = self.configure
         messages = current.messages
         settings = current.deployment_settings
-        UNKNOWN_OPT = messages.UNKNOWN_OPT
-        
         
         # ---------------------------------------------------------------------
         # Shelter Allocation: table to allocate shelter capacity to a group
@@ -989,8 +988,7 @@ class S3ShelterRegistrationModel(S3Model):
                                        3: T("Checked-out"),
                                        }
         housing_unit = settings.get_cr_shelter_housing_unit_management()
-        
-        
+          
         tablename = "cr_shelter_registration"
         self.define_table(tablename,
                           self.cr_shelter_id(ondelete="CASCADE"),
@@ -1043,7 +1041,7 @@ class S3ShelterRegistrationModel(S3Model):
                                                                     tablename="cr_shelter_registration")
         if housing_unit:         
             configure(tablename,
-                      create_onvalidation = self.unit_create_onvalidation,
+                      create_onvalidation = self.unit_onvalidation,
                       onaccept = population_onaccept,
                       ondelete = population_onaccept,
                       )
@@ -1059,9 +1057,11 @@ class S3ShelterRegistrationModel(S3Model):
     
     # -------------------------------------------------------------------------
     @staticmethod
-    def unit_create_onvalidation(form):
+    def unit_onvalidation(form):
+        """
+            Check if the housing unit belongs to ( is registered in) )the requested shelter
+        """
         
-        vars = form.request_vars
         db = current.db
         T = current.T
         
@@ -1088,8 +1088,6 @@ class S3ShelterRegistrationModel(S3Model):
     def shelter_population_onaccept(form, tablename=None):
         
         db = current.db
-        T = current.T
-        housing_unit = current.deployment_settings.get_cr_shelter_housing_unit_management()
         
         if not tablename:
             return
@@ -1097,13 +1095,9 @@ class S3ShelterRegistrationModel(S3Model):
 
         try:
             if type(form) is Row:
-                if housing_unit:
-                    record_housing_unit_id = form.shelter_unit_id
                 record_id = form.id  
                                                                     
             else:
-                if housing_unit:
-                    record_housing_unit_id = form.vars.shelter_unit_id
                 record_id = form.vars.id
         except:
             # Nothing we can do
@@ -1124,23 +1118,9 @@ class S3ShelterRegistrationModel(S3Model):
                 shelter_id = deleted_fk.get("shelter_id")
             else:
                 shelter_id = row.shelter_id
-            if shelter_id:
-                
-                if housing_unit:
-                    htable = db.cr_shelter_unit
-                    
-                    record = db(htable.id == record_housing_unit_id).select(htable.shelter_id).first()
-                    
-                    if record.shelter_id == shelter_id:
-                        cr_update_capacity_from_housing_units(shelter_id)
-                    else:
-                        current.session.error = T("You have to select a housing unit related to this shelter")
-              #          error = current.T("Cannot make an Organization a branch of itself!")
-              #          current.response.error = error
-                        redirect(URL(c="cr", f="shelter", args=[shelter_id, "shelter_registration"]))
-
-#                        
-#                        current.response.error = error
+            if shelter_id:         
+                if current.deployment_settings.get_cr_shelter_housing_unit_management():
+                    cr_update_capacity_from_housing_units(shelter_id)
                                                      
                 cr_update_shelter_population(shelter_id)
                                     
@@ -1306,11 +1286,11 @@ def cr_update_shelter_population(shelter_id):
     for row in rows:
         reg_type = row[rtable.day_or_night]
         number = row[cnt]
-        if reg_type == DAY_AND_NIGHT and number:
+        if reg_type == NIGHT and number:
+            population_night = number     
+        elif reg_type == DAY_AND_NIGHT and number:
             population_day = number
-        elif reg_type == NIGHT and number:
-            population_night = number 
-
+            
     # Get allocation numbers
     query = (atable.shelter_id == shelter_id) & \
             (atable.status.belongs((1,2,3,4))) & \

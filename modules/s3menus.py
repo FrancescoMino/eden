@@ -574,7 +574,6 @@ class S3OptionsMenu(object):
 
         ADMIN = current.session.s3.system_roles.ADMIN
         
-        housing_unit = "Housing Unit"
         if current.deployment_settings.get_ui_label_camp():
             shelter = "Camps"
             types = "Camp Settings"

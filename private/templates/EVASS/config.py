@@ -64,8 +64,6 @@ settings.auth.always_notify_approver = False
 #settings.auth.opt_in_team_list = ["Updates"]
 # Uncomment this to set the opt in default to True
 #settings.auth.opt_in_default = True
-# Uncomment this to request the Home Phone when a user registers
-#settings.auth.registration_requests_home_phone = True
 # Uncomment this to request the Mobile Phone when a user registers
 settings.auth.registration_requests_mobile_phone = True
 # Uncomment this to have the Mobile Phone selection during registration be mandatory
@@ -259,8 +257,6 @@ settings.gis.legend = "float"
 #settings.gis.save = False
 # Uncomment to hide the ScaleLine control
 #settings.gis.scaleline = False
-# Uncomment to hide the GeoNames search box
-#settings.gis.search_geonames = False
 # Uncomment to modify the Simplify Tolerance
 #settings.gis.simplify_tolerance = 0.001
 # Uncomment to Hide the Toolbar from the main Map
@@ -375,7 +371,7 @@ settings.org.branches = True
 #settings.org.groups = "Coalition"
 #settings.org.groups = "Network"
 # Enable the use of Organisation Regions
-settings.org.regions = True
+#settings.org.regions = True
 # Make Organisation Regions Hierarchical
 settings.org.regions_hierarchical = True
 # Make Services Hierarchical
@@ -390,8 +386,6 @@ settings.org.regions_hierarchical = True
 #settings.org.site_autocomplete = True
 # Extra fields to show in Autocomplete Representations
 #settings.org.site_autocomplete_fields = ["instance_type", "location_id$L1", "organisation_id$name"]
-
-
 # Uncomment to hide inv & req tabs from Sites
 #settings.org.site_inv_req_tabs = False
 # Uncomment to add summary fields for Organisations/Offices for # National/International staff
@@ -429,8 +423,6 @@ settings.hrm.multiple_job_titles = True
 #settings.hrm.org_dependent_job_titles = True
 # Uncomment to hide the Staff resource
 #settings.hrm.show_staff = False
-# Uncomment to allow hierarchical categories of Skills, which each need their own set of competency levels.
-#settings.hrm.skill_types = True
 # Uncomment to disable Staff experience
 #settings.hrm.staff_experience = False
 # Uncomment to enable Volunteer 'active' field
@@ -466,39 +458,6 @@ settings.hrm.use_certificates = False
 settings.hrm.teams = False
 # Uncomment to disable the use of HR Trainings
 settings.hrm.use_trainings = False
-
-# Custom Crud Strings for specific req_req types
-#settings.req.req_crud_strings = dict()
-#ADD_ITEM_REQUEST = T("Make a Request for Donations")
-# req_req Crud Strings for Item Request (type=1)
-#settings.req.req_crud_strings[1] = Storage(
-#    label_create = ADD_ITEM_REQUEST,
-#    title_display = T("Request for Donations Details"),
-#    title_list = T("Requests for Donations"),
-#    title_update = T("Edit Request for Donations"),
-
-
-#    label_list_button = T("List Requests for Donations"),
-
-#    label_delete_button = T("Delete Request for Donations"),
-#    msg_record_created = T("Request for Donations Added"),
-#    msg_record_modified = T("Request for Donations Updated"),
-#    msg_record_deleted = T("Request for Donations Canceled"),
-#    msg_list_empty = T("No Requests for Donations"))
-#ADD_PEOPLE_REQUEST = T("Make a Request for Volunteers")
-# req_req Crud Strings for People Request (type=3)
-#settings.req.req_crud_strings[3] = Storage(
-#    label_create = ADD_PEOPLE_REQUEST,
-#    title_display = T("Request for Volunteers Details"),
-#    title_list = T("Requests for Volunteers"),
-#    title_update = T("Edit Request for Volunteers"),
-#    label_list_button = T("List Requests for Volunteers"),
-#    label_delete_button = T("Delete Request for Volunteers"),
-#    msg_record_created = T("Request for Volunteers Added"),
-#    msg_record_modified = T("Request for Volunteers Updated"),
-#    msg_record_deleted = T("Request for Volunteers Canceled"),
-#    msg_list_empty = T("No Requests for Volunteers"))
-
 
 #*****************************Frontpage settings*************************
 # RSS feeds
@@ -610,27 +569,6 @@ def customise_pr_person_resource(r, tablename):
 
 settings.customise_pr_person_resource = customise_pr_person_resource
 
-# =============================================================================
-# def customise_cr_shelter_resource(r, tablename):
-#     
-#     field_static_population = current.s3db.cr_shelter.population
-#     field_static_population.readable = False
-#     field_static_population.writable = False
-#         
-#     field_available_capacity_day = current.s3db.cr_shelter.available_capacity_day
-#     field_available_capacity_day.readable = True
-#     
-#     field_available_capacity_night = current.s3db.cr_shelter.available_capacity_night
-#     field_available_capacity_night.readable = True
-#     
-#     field_population_day = current.s3db.cr_shelter.population_day
-#     field_population_day.readable = True
-#     
-#     field_population_night = current.s3db.cr_shelter.population_night
-#     field_population_night.readable = True
-#     
-# settings.customise_cr_shelter_resource = customise_cr_shelter_resource
-# =============================================================================
 def customise_pr_group_resource(r, tablename):
 
     field = r.table.group_type
@@ -701,22 +639,11 @@ settings.modules = OrderedDict([
         access = "|1|",     # Only Administrators can see this module in the default menu & access the controller
         module_type = None  # This item is handled separately for the menu
     )),
-    #("tour", Storage(
-    #    name_nice = T("Guided Tour Functionality"),
-    #    module_type = None,
-    #)),
     ("translate", Storage(
         name_nice = T("Translation Functionality"),
         #description = "Selective translation of strings based on module.",
         module_type = None,
     )),
-    # Uncomment to enable internal support requests
-    #("support", Storage(
-    #        name_nice = T("Support"),
-    #        #description = "Support Requests",
-    #        restricted = True,
-    #        module_type = None  # This item is handled separately for the menu
-    #    )),
     ("gis", Storage(
         name_nice = T("Map"),
         #description = "Situation Awareness & Geospatial Analysis",
