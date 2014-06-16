@@ -586,12 +586,12 @@ class S3ShelterModel(S3Model):
         
         tablename = "cr_shelter_unit"
         define_table(tablename,
-                     shelter_id(ondelete="CASCADE"),
                      Field("name", notnull=True,                          
                            length=64,
                            label = T("Housing Unit Name"),
                            requires = IS_NOT_EMPTY(),
                            ),
+                     shelter_id(ondelete="CASCADE"),
                      Field("status", "integer",
                            default = 1,
                            label = T("Status"),
@@ -1041,36 +1041,70 @@ class S3ShelterRegistrationModel(S3Model):
         population_onaccept = lambda form: \
                                     self.shelter_population_onaccept(form,
                                                                     tablename="cr_shelter_registration")
-        configure(tablename,
-                  onaccept = population_onaccept,
-                  ondelete = population_onaccept,
-                  )
+        if housing_unit:         
+            configure(tablename,
+                      create_onvalidation = self.unit_create_onvalidation,
+                      onaccept = population_onaccept,
+                      ondelete = population_onaccept,
+                      )
+        else:
+            configure(tablename,
+                      onaccept = population_onaccept,
+                      ondelete = population_onaccept,
+                      )
         
         # ---------------------------------------------------------------------
         # Pass variables back to global scope (response.s3.*)
         return dict()
-
+    
+    # -------------------------------------------------------------------------
+    @staticmethod
+    def unit_create_onvalidation(form):
+        
+        vars = form.request_vars
+        db = current.db
+        T = current.T
+        
+        htable = db.cr_shelter_unit
+        
+        if type(form) is Row:     
+            shelter_id = vars.shelter_id
+            unit_id = vars.shelter_unit_id                                                                 
+        else:
+            shelter_id = vars.shelter_id
+            unit_id = vars.shelter_unit_id
+            
+        record = db(htable.id == unit_id).select(htable.shelter_id).first()
+        
+        if record.shelter_id == shelter_id:
+            return False
+        else:
+            current.session.error = T("You have to select a housing unit related to this shelter")
+            redirect(URL(c="cr", f="shelter", args=[shelter_id, "shelter_registration"]))
+            return True
+           
     # -------------------------------------------------------------------------
     @staticmethod
     def shelter_population_onaccept(form, tablename=None):
         
         db = current.db
+        T = current.T
         housing_unit = current.deployment_settings.get_cr_shelter_housing_unit_management()
         
         if not tablename:
             return
         table = current.s3db[tablename]
 
-        
         try:
             if type(form) is Row:
+                if housing_unit:
+                    record_housing_unit_id = form.shelter_unit_id
                 record_id = form.id  
-#                if housing_unit:
-#                    record_housing_unit_id = form.shelter_unit_id                                                     
+                                                                    
             else:
+                if housing_unit:
+                    record_housing_unit_id = form.vars.shelter_unit_id
                 record_id = form.vars.id
-#                if housing_unit:
-#                    record_housing_unit_id = form.shelter_unit_id
         except:
             # Nothing we can do
             return
@@ -1091,14 +1125,23 @@ class S3ShelterRegistrationModel(S3Model):
             else:
                 shelter_id = row.shelter_id
             if shelter_id:
+                
                 if housing_unit:
                     htable = db.cr_shelter_unit
                     
-#                    record = 
+                    record = db(htable.id == record_housing_unit_id).select(htable.shelter_id).first()
                     
-                    error = current.T("Cannot make an Organization a branch of itself!")
-                    current.response.error = error
-                    cr_update_capacity_from_housing_units(shelter_id)                                 
+                    if record.shelter_id == shelter_id:
+                        cr_update_capacity_from_housing_units(shelter_id)
+                    else:
+                        current.session.error = T("You have to select a housing unit related to this shelter")
+              #          error = current.T("Cannot make an Organization a branch of itself!")
+              #          current.response.error = error
+                        redirect(URL(c="cr", f="shelter", args=[shelter_id, "shelter_registration"]))
+
+#                        
+#                        current.response.error = error
+                                                     
                 cr_update_shelter_population(shelter_id)
                                     
         return
