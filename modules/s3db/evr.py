@@ -253,11 +253,11 @@ class S3EVRCaseModel(S3Model):
         define_table(tablename,
                      self.pr_person_id(),
                      Field("file", "upload",
-                           uploadfolder = os.path.join(folder,
-                                                       "uploads"),
-                           autodelete = True,
-                           represent = lambda file: \
-                                    self.doc_file_represent(file, tablename),
+#                           uploadfolder = os.path.join(folder,
+#                                                       "uploads")
+#                           autodelete = True,
+#                           represent = lambda file: \
+#                                    self.doc_file_represent(file, tablename),
                            ),
                      Field("name", length=128,
                                 requires = IS_EMPTY_OR(IS_LENGTH(128)),
@@ -417,14 +417,14 @@ def evr_rheader(r):
                 (T("Images"), "image"),
                 (T("Medical Information"), "medical_details"),
                 (T("Socio-Economic Background"), "background"),
-#                (T("Attachments"), "attachment")
+                (T("Attachments"), "attachment")
                 ]                   
         if settings.get_evr_show_physical_description():
             tabs.append((T("Physical Description"), "physical_description"))
         
         if settings.has_module("cr"):
             tabs.append((T("Shelter Registration"), "shelter_registration"))    
-        tabs.append((T("Attachments"), "attachment"))
+#        tabs.append((T("Attachments"), "attachment"))
         
         rheader_fields = [["first_name", "last_name"],
                           ["date_of_birth"],

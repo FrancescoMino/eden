@@ -1006,9 +1006,9 @@ class S3PersonModel(S3Model):
                        evr_background = {"joinby": "person_id",
                                          "multiple": False,
                                          },
-                       evr_attachment={"joinby": "person_id",
-                                       "multiple": False,
-                                       },
+                       evr_attachment = {"joinby": "person_id",
+                                         "multiple": False,
+                                         },
 
                        # Shelter (Camp) Registry
                        cr_shelter_registration = {"joinby": "person_id",
@@ -2477,8 +2477,20 @@ class S3PersonImageModel(S3Model):
             msg_record_modified = T("Image updated"),
             msg_record_deleted = T("Image deleted"),
             msg_list_empty = T("No Images currently registered"))
-
-        # Resource configuration
+        
+        #=======================================================================
+        # crud_form = S3SQLCustomForm(
+        #                             "name",
+        #                             S3SQLInlineComponent("document",
+        #                                                  label = T("Files"),
+        #                                                  fields = ["file"],
+        #                                                  filterby = dict(field = "file",
+        #                                                                  options = "",
+        #                                                                  invert = True,)
+        #                                                  ),
+        #                             )
+        # # Resource configuration
+        #=======================================================================
         self.configure(tablename,
                        onaccept = self.pr_image_onaccept,
                        onvalidation = self.pr_image_onvalidation,
