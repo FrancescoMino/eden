@@ -748,7 +748,7 @@ class S3ShelterModel(S3Model):
                                                                                        tablename="cr_shelter_unit")
 
         configure(tablename,
-                  deduplicate = self.cr_shelter_unit_duplicate,
+#                  deduplicate = self.cr_shelter_unit_duplicate,
                   list_fields = list_fields,
                   onaccept = population_onaccept,
                   ondelete = population_onaccept,
@@ -938,7 +938,6 @@ class S3ShelterRegistrationModel(S3Model):
         
         define_table = self.define_table
         configure = self.configure
-        messages = current.messages
         settings = current.deployment_settings
         
         # ---------------------------------------------------------------------
@@ -1037,11 +1036,12 @@ class S3ShelterRegistrationModel(S3Model):
                           *s3_meta_fields())
 
         population_onaccept = lambda form: \
-                                    self.shelter_population_onaccept(form,
-                                                                    tablename="cr_shelter_registration")
+            self.shelter_population_onaccept(form,
+                                             tablename="cr_shelter_registration")
+
         if housing_unit:         
             configure(tablename,
-                      create_onvalidation = self.unit_onvalidation,
+                      onvalidation = self.unit_onvalidation,
                       onaccept = population_onaccept,
                       ondelete = population_onaccept,
                       )
@@ -1059,7 +1059,7 @@ class S3ShelterRegistrationModel(S3Model):
     @staticmethod
     def unit_onvalidation(form):
         """
-            Check if the housing unit belongs to ( is registered in) )the requested shelter
+            Check if the housing unit belongs to ( is registered in )the requested shelter
         """
         
         db = current.db
@@ -1067,21 +1067,28 @@ class S3ShelterRegistrationModel(S3Model):
         
         htable = db.cr_shelter_unit
         
-        if type(form) is Row:     
-            shelter_id = vars.shelter_id
-            unit_id = vars.shelter_unit_id                                                                 
+        if type(form) is Row:
+            if current.request.controller == "evr":     
+                shelter_id = form.shelter_id
+                unit_id = form.shelter_unit_id
+            elif current.request.controller == "cr":
+                shelter_id = current.request.args[0]
+                unit_id = form.shelter_unit_id                                                                   
         else:
-            shelter_id = vars.shelter_id
-            unit_id = vars.shelter_unit_id
+            if current.request.controller == "evr": 
+                shelter_id = form.vars.shelter_id
+                unit_id = form.vars.shelter_unit_id
+            elif current.request.controller == "cr":
+                shelter_id = current.request.args[0]
+                unit_id = form.vars.shelter_unit_id     
             
         record = db(htable.id == unit_id).select(htable.shelter_id).first()
         
-        if record.shelter_id == shelter_id:
-            return False
-        else:
-            current.session.error = T("You have to select a housing unit related to this shelter")
-            redirect(URL(c="cr", f="shelter", args=[shelter_id, "shelter_registration"]))
-            return True
+        shelter_value = str(record.shelter_id)
+        if shelter_value != shelter_id:
+            error = T("You have to select a housing unit related to this shelter")
+            form.errors["branch_id"] = error
+            current.response.error = error
            
     # -------------------------------------------------------------------------
     @staticmethod
@@ -1095,14 +1102,13 @@ class S3ShelterRegistrationModel(S3Model):
 
         try:
             if type(form) is Row:
-                record_id = form.id  
-                                                                    
+                record_id = form.id                                                              
             else:
                 record_id = form.vars.id
         except:
             # Nothing we can do
             return
-                  
+                 
         row = db(table._id == record_id).select(table._id,
                                                 table.shelter_id,
                                                 table.deleted,
@@ -1165,7 +1171,7 @@ def cr_shelter_rheader(r, tabs=[]):
                                                              
                 if settings.has_module("msg"):
                     tabs.append((T("Send Notification"), "dispatch"))
-                        
+
             rheader_tabs = s3_rheader_tabs(r, tabs)
 
             if r.name == "shelter":
@@ -1328,7 +1334,8 @@ def cr_update_shelter_population(shelter_id):
         
     if current.deployment_settings.get_cr_shelter_housing_unit_management():
         cr_update_housing_unit_population(shelter_id)
-             
+    
+    # Update record     
     record.update_record(population_day=population_day,
                          population_night=population_night,
                          available_capacity_day=available_capacity_day,
