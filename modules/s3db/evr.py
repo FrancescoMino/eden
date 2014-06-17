@@ -47,12 +47,10 @@ class S3EVRCaseModel(S3Model):
     def model(self):
 
         T = current.T
-        db = current.db
+
         define_table = self.define_table
         person_id = self.pr_person_id
         
-        folder = current.request.folder
-
         # ---------------------------------------------------------------------
         # Case Data
         #
@@ -77,11 +75,10 @@ class S3EVRCaseModel(S3Model):
 #                                                fiscal_code),
 #                                                null=''
 #                                                )
-
         self.configure(tablename,
                        onaccept = self.evr_case_onaccept,
                        )
-
+        
         # ---------------------------------------------------------------------
         # Medical Details
         #
@@ -248,46 +245,6 @@ class S3EVRCaseModel(S3Model):
                            ),
                      s3_comments(),
                      *s3_meta_fields())
-        
-        tablename = "evr_attachment"
-        define_table(tablename,
-                     self.pr_person_id(),
-                     Field("file", "upload",
-#                           uploadfolder = os.path.join(folder,
-#                                                       "uploads")
-#                           autodelete = True,
-#                           represent = lambda file: \
-#                                    self.doc_file_represent(file, tablename),
-                           ),
-                     Field("name", length=128,
-                                requires = IS_EMPTY_OR(IS_LENGTH(128)),
-                                label = T("Name")
-                                ),
-                     Field("issuer",
-                           label = T("Issuer"),
-                           requires = IS_EMPTY_OR(IS_URL()),
-                           represent = lambda url: \
-                                url and A(url, _href=url) or NONE
-                           ),
-                     Field("issuer_phone",
-                           label = T("Issuere Phone"),
-                           requires = IS_EMPTY_OR(s3_phone_requires),
-                           ),
-                     Field("issuer_email", "string",
-                           label = T("Issuer Email"),
-                           ),
-                     s3_datetime("expiration_date",
-                                 label = T("Expiration Date"),
-#                                 default = "now",
-                                 empty = False,
-#                                 future = 0,
-                                 ),
-                     s3_comments(),
-                     Field("checksum",
-                           readable = False,
-                           writable = False,
-                           ),
-                     *s3_meta_fields())
 
     # -------------------------------------------------------------------------
     @staticmethod
@@ -417,14 +374,12 @@ def evr_rheader(r):
                 (T("Images"), "image"),
                 (T("Medical Information"), "medical_details"),
                 (T("Socio-Economic Background"), "background"),
-                (T("Attachments"), "attachment")
                 ]                   
         if settings.get_evr_show_physical_description():
             tabs.append((T("Physical Description"), "physical_description"))
         
         if settings.has_module("cr"):
             tabs.append((T("Shelter Registration"), "shelter_registration"))    
-#        tabs.append((T("Attachments"), "attachment"))
         
         rheader_fields = [["first_name", "last_name"],
                           ["date_of_birth"],
