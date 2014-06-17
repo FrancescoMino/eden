@@ -1121,8 +1121,14 @@ class S3ResourceQuery(object):
         r = self.right
 
         if op in (self.AND, self.OR):
-            ljoins, ld = l._joins(resource, left=left)
-            rjoins, rd = r._joins(resource, left=left)
+            if isinstance(l, S3ResourceQuery):
+                ljoins, ld = l._joins(resource, left=left)
+            else:
+                ljoins, ld = {}, False
+            if isinstance(r, S3ResourceQuery):
+                rjoins, rd = r._joins(resource, left=left)
+            else:
+                rjoins, rd = {}, False
             
             ljoins = dict(ljoins)
             ljoins.update(rjoins)
@@ -1130,7 +1136,10 @@ class S3ResourceQuery(object):
             return (ljoins, ld or rd)
             
         elif op == self.NOT:
-            return l._joins(resource, left=left)
+            if isinstance(l, S3ResourceQuery):
+                return l._joins(resource, left=left)
+            else:
+                return {}, False
 
         joins, distinct = {}, False
 
@@ -1180,8 +1189,10 @@ class S3ResourceQuery(object):
         r = self.right
 
         if op == self.AND:
-            lq, lf = l.split(resource)
-            rq, rf = r.split(resource)
+            lq, lf = l.split(resource) \
+                     if isinstance(l, S3ResourceQuery) else l, None
+            rq, rf = r.split(resource) \
+                     if isinstance(r, S3ResourceQuery) else r, None
             q = lq
             if rq is not None:
                 if q is not None:
@@ -1196,8 +1207,10 @@ class S3ResourceQuery(object):
                     f = rf
             return q, f
         elif op == self.OR:
-            lq, lf = l.split(resource)
-            rq, rf = r.split(resource)
+            lq, lf = l.split(resource) \
+                     if isinstance(l, S3ResourceQuery) else l, None
+            rq, rf = r.split(resource) \
+                     if isinstance(r, S3ResourceQuery) else r, None
             if lf is not None or rf is not None:
                 return None, self
             else:
@@ -1209,17 +1222,20 @@ class S3ResourceQuery(object):
                         q = rq
                 return q, None
         elif op == self.NOT:
-            if l.op == self.OR:
-                i = (~(l.left)) & (~(l.right))
-                return i.split(resource)
+            if isinstance(l, S3ResourceQuery):
+                if l.op == self.OR:
+                    i = (~(l.left)) & (~(l.right))
+                    return i.split(resource)
+                else:
+                    q, f = l.split(resource)
+                    if q is not None and f is not None:
+                        return None, self
+                    elif q is not None:
+                        return ~q, None
+                    elif f is not None:
+                        return None, ~f
             else:
-                q, f = l.split(resource)
-                if q is not None and f is not None:
-                    return None, self
-                elif q is not None:
-                    return ~q, None
-                elif f is not None:
-                    return None, ~f
+                return ~l, None
 
         l = self.left
         try:
@@ -1261,8 +1277,8 @@ class S3ResourceQuery(object):
 
         # Resolve query components
         if op == self.AND:
-            l = l.query(resource)
-            r = r.query(resource)
+            l = l.query(resource) if isinstance(l, S3ResourceQuery) else l
+            r = r.query(resource) if isinstance(r, S3ResourceQuery) else r
             if l is None or r is None:
                 return None
             elif l is False or r is False:
@@ -1270,8 +1286,8 @@ class S3ResourceQuery(object):
             else:
                 return l & r
         elif op == self.OR:
-            l = l.query(resource)
-            r = r.query(resource)
+            l = l.query(resource) if isinstance(l, S3ResourceQuery) else l
+            r = r.query(resource) if isinstance(r, S3ResourceQuery) else r
             if l is None or r is None:
                 return None
             elif l is False or r is False:
@@ -1279,7 +1295,7 @@ class S3ResourceQuery(object):
             else:
                 return l | r
         elif op == self.NOT:
-            l = l.query(resource)
+            l = l.query(resource) if isinstance(l, S3ResourceQuery) else l
             if l is None:
                 return None
             elif l is False:

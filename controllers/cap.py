@@ -88,18 +88,49 @@ def info_prep(r):
 
 # -----------------------------------------------------------------------------
 def alert():
-    """ REST controller for CAP alerts """
+    """ REST controller for CAP Alerts and Components """
 
     def prep(r):
-        if r.id and r.record.is_template:
-            redirect(URL(c="cap", f="template",
-                         args = request.args,
-                         vars = request.vars))
-        elif not r.id:
-            s3.filter = (s3db.cap_alert.is_template == False)
+        if r.id:
+            if r.record.is_template:
+                redirect(URL(c="cap", f="template",
+                             args = request.args,
+                             vars = request.vars))
+        else:
+            s3.filter = (r.table.is_template == False)
+            s3.formats["cap"] = r.url() # .have added by JS
 
         if r.interactive:
             alert_fields_comments()
+
+            if not r.component:
+                if r.method != "import":
+                    s3.crud.submit_style = "hide"
+                    s3.crud.custom_submit = (("edit_info",
+                                              T("Save and edit information"),
+                                              "",
+                                              ),)
+            elif r.component_name in ("area", "resource"):
+                # Limit to those for this Alert
+                r.component.table.info_id.requires = IS_EMPTY_OR(
+                                                        IS_ONE_OF(current.db, "cap_info.id",
+                                                                  s3db.cap_info_represent,
+                                                                  filterby="alert_id",
+                                                                  filter_opts=(r.id,),
+                                                                  ))
+            elif r.component_name == "location":
+                # Limit to those for this Alert
+                r.component.table.area_id.requires = IS_EMPTY_OR(
+                                                        IS_ONE_OF(current.db, "cap_area.id",
+                                                                  s3db.cap_area_represent,
+                                                                  filterby="alert_id",
+                                                                  filter_opts=(r.id,),
+                                                                  ))
+                
+
+        elif r.representation == "cap" and r.method in ["create", "import"]:
+            s3db.configure("gis_location",
+                           xml_post_parse = s3db.cap_gis_location_xml_post_parse)
 
         post_vars = request.post_vars
         if post_vars.get("edit_info", False):
@@ -172,16 +203,14 @@ def alert():
                 s3_action_buttons(r, update_url=update_url)
 
             if isinstance(output, dict) and "form" in output:
-                if not r.component and r.method != "import":
+                if not r.component and \
+                   r.method not in ("import", "import_feed"):
                     fields = s3db.cap_info_labels()
                     jsobj = []
                     for f in fields:
                         jsobj.append("'%s': '%s'" % (f, fields[f].replace("'", "\\'")))
                     s3.js_global.append('''i18n.cap_info_labels={%s}''' % ", ".join(jsobj))
                     form = output["form"]
-                    # @ToDo: Support multiple formstyles
-                    form[0][-1][0][0].update(_value=T("Save and edit information"),
-                                             _name="edit_info")
                     form.update(_class="cap_alert_form")
                 set_priority_js()
 
@@ -198,7 +227,17 @@ def info():
         - shouldn't ever be called
     """
 
-    s3.prep = info_prep
+    def prep(r):
+        result = info_prep(r)
+        if result:
+            if not r.component and r.representation == "html":
+                s3.crud.custom_submit = (("add_language",
+                                          T("Save and add another language..."),
+                                          "",
+                                          ),)
+            
+        return result
+    s3.prep = prep
 
     def postp(r, output):
         if r.representation == "html":
@@ -208,8 +247,7 @@ def info():
 
             if not r.component and "form" in output:
                 set_priority_js()
-                add_submit_button(output["form"], "add_language",
-                                  T("Save and add another language..."))
+
         return output
     s3.postp = postp
 
@@ -294,7 +332,10 @@ def template():
 
 # -----------------------------------------------------------------------------
 def area():
-    """ REST controller for CAP area """
+    """
+        REST controller for CAP area
+        - shouldn't ever be called
+    """
 
     def postp(r, output):
         if r.interactive and r.component and r.component_name == "area_location":
@@ -341,19 +382,6 @@ def area_location():
     output = s3_rest_controller("cap", "area_location",
                                 rheader = s3db.cap_rheader)
     return output
-
-# -----------------------------------------------------------------------------
-def add_submit_button(form, name, value):
-    """
-        Append a submit button to a form
-    """
-
-    form[0][-1][0].insert(1,
-                          TAG[""](" ",
-                                  INPUT(_type="submit", _name=name,
-                                        _value=value)))
-
-    return
 
 # -----------------------------------------------------------------------------
 def alert_fields_comments():

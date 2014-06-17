@@ -31,12 +31,19 @@ __all__ = ["S3CAPModel",
            "cap_info_labels",
            "cap_alert_is_template",
            "cap_rheader",
+           "cap_gis_location_xml_post_parse",
            ]
 
 import datetime
+import urllib2          # Needed for quoting & error handling on fetch
+try:
+    from cStringIO import StringIO    # Faster, where available
+except:
+    from StringIO import StringIO
 
 from gluon import *
 from gluon.storage import Storage
+from gluon.tools import fetch
 from ..s3 import *
 
 # =============================================================================
@@ -54,6 +61,7 @@ class S3CAPModel(S3Model):
              "cap_info_represent",
              "cap_resource",
              "cap_area",
+             "cap_area_represent",
              "cap_area_location",
              "cap_area_tag",
              ]
@@ -357,16 +365,25 @@ class S3CAPModel(S3Model):
             ]
 
         configure(tablename,
+                  context = {"location": "location.location_id",
+                             },
                   filter_widgets = filter_widgets,
                   onvalidation = self.cap_alert_form_validation,
                   )
 
         # Components
         add_components(tablename,
-                       cap_info = "alert_id",
                        cap_area = "alert_id",
+                       cap_area_location = {"name": "location",
+                                            "joinby": "alert_id",
+                                            },
+                       cap_info = "alert_id",
                        cap_resource = "alert_id",
                        )
+
+        self.set_method("cap", "alert",
+                        method = "import_feed",
+                        action = CAPImportFeed())
 
         if crud_strings["cap_template"]:
             crud_strings[tablename] = crud_strings["cap_template"]
@@ -394,7 +411,7 @@ class S3CAPModel(S3Model):
         alert_id = S3ReusableField("alert_id", "reference %s" % tablename,
                                    comment = T("The alert message containing this information"),
                                    label = T("Alert"),
-                                   ondelete = "RESTRICT",
+                                   ondelete = "CASCADE",
                                    represent = alert_represent,
                                    requires = IS_EMPTY_OR(
                                                 IS_ONE_OF(db, "cap_alert.id",
@@ -468,7 +485,7 @@ class S3CAPModel(S3Model):
         define_table(tablename,
                      alert_id(),
                      Field("is_template", "boolean",
-                           default = True,
+                           default = False,
                            readable = False,
                            writable = False,
                            ),
@@ -585,7 +602,7 @@ class S3CAPModel(S3Model):
 
         info_id = S3ReusableField("info_id", "reference %s" % tablename,
                                   label = T("Information Segment"),
-                                  ondelete = "RESTRICT",
+                                  ondelete = "CASCADE",
                                   represent = info_represent,
                                   requires = IS_EMPTY_OR(
                                                 IS_ONE_OF(db, "cap_info.id",
@@ -656,7 +673,8 @@ class S3CAPModel(S3Model):
                     msg_list_empty = T("No resources currently defined for this alert"))
 
         configure(tablename,
-                  onaccept = update_alert_id(tablename),
+                  # Shouldn't be required if all UI actions go through alert controller & XSLT configured appropriately
+                  create_onaccept = update_alert_id(tablename),
                   )
 
         # ---------------------------------------------------------------------
@@ -710,10 +728,6 @@ class S3CAPModel(S3Model):
                            label = T("Area description"),
                            required = True,
                            ),
-                     #Field("geocode", "text",
-                     #      widget = S3KeyValueWidget(),
-                     #      represent = S3KeyValueWidget.represent,
-                     #      default = settings.get_cap_geocodes),
                      Field("altitude", "integer"),
                      Field("ceiling", "integer"),
                      *s3_meta_fields())
@@ -735,13 +749,13 @@ class S3CAPModel(S3Model):
         crud_form = S3SQLCustomForm("name",
                                     "info_id",
                                     # Not yet working with default formstyle or multiple=True
-                                    #S3SQLInlineComponent("area_location",
+                                    #S3SQLInlineComponent("location",
                                     #                     name = "location",
                                     #                     label = "",
                                     #                     multiple = False,
                                     #                     fields = [("", "location_id")],
                                     #                     ),
-                                    S3SQLInlineComponent("area_tag",
+                                    S3SQLInlineComponent("tag",
                                                          name = "tag",
                                                          label = "",
                                                          fields = ["tag",
@@ -753,17 +767,32 @@ class S3CAPModel(S3Model):
                                     "ceiling",
                                     )
 
+        area_represent = S3Represent(lookup=tablename)
+
         configure(tablename,
-                  create_next = URL(f="area", args=["[id]", "area_location"]),
+                  #create_next = URL(f="area", args=["[id]", "location"]),
+                  # Shouldn't be required if all UI actions go through alert controller & XSLT configured appropriately
+                  create_onaccept = update_alert_id(tablename),
                   crud_form = crud_form,
-                  onaccept = update_alert_id(tablename),
                   )
 
         # Components
         add_components(tablename,
-                       cap_area_location = "area_id",
-                       cap_area_tag = "area_id",
+                       cap_area_location = {"name": "location",
+                                            "joinby": "area_id",
+                                            },
+                       cap_area_tag = {"name": "tag",
+                                       "joinby": "area_id",
+                                       },
                        )
+
+        area_id = S3ReusableField("area_id", "reference %s" % tablename,
+                                  label = T("Area"),
+                                  ondelete = "CASCADE",
+                                  represent = area_represent,
+                                  requires = IS_ONE_OF(db, "cap_area.id",
+                                                       area_represent),
+                                  )
 
         # ToDo: Use a widget tailored to entering <polygon> and <circle>.
         # Want to be able to enter them by drawing on the map.
@@ -772,24 +801,37 @@ class S3CAPModel(S3Model):
         # with irrelevant locations.
         tablename = "cap_area_location"
         define_table(tablename,
-                     Field("area_id", "reference cap_area"),
+                     alert_id(readable = False,
+                              writable = False,
+                              ),
+                     area_id(),
                      self.gis_location_id(
-                         widget = S3LocationSelectorWidget2(polygons=True,
-                                                            show_map=True,
-                                                            show_address=False,
-                                                            show_postcode=False,
-                                                            ),
-                         ),
+                        widget = S3LocationSelectorWidget2(polygons=True,
+                                                           show_map=True,
+                                                           show_address=False,
+                                                           show_postcode=False,
+                                                           ),
+                        ),
                      )
 
-        # ToDo: When importing, we'll construct the WKT for locations in
-        # xml_post_parse. However, this is an action on the gis_location not
-        # the cap_area_location, so we'll add the xml_post_parse to
-        # gis_location in the cap_alert controller's prep, as it's not wanted
-        # for anything but CAP.
-        # ToDo: Right now, we have no support for CIRCULARSTRING, so will need
-        # to handle adding circle info when the location is added in the form
-        # as well.
+        # CRUD Strings
+        crud_strings[tablename] = Storage(
+            label_create = T("Add Location"),
+            title_display = T("Alert Location"),
+            title_list = T("Locations"),
+            title_update = T("Edit Location"),
+            subtitle_list = T("List Locations"),
+            label_list_button = T("List Locations"),
+            label_delete_button = T("Delete Location"),
+            msg_record_created = T("Location added"),
+            msg_record_modified = T("Location updated"),
+            msg_record_deleted = T("Location deleted"),
+            msg_list_empty = T("No locations currently defined for this alert"))
+
+        configure(tablename,
+                  # Shouldn't be required if all UI actions go through alert controller & XSLT configured appropriately
+                  create_onaccept = update_alert_id(tablename),
+                  )
 
         # ---------------------------------------------------------------------
         # Area Tags
@@ -813,7 +855,7 @@ class S3CAPModel(S3Model):
 
         tablename = "cap_area_tag"
         define_table(tablename,
-                     Field("area_id", "reference cap_area"),
+                     area_id(),
                      # ToDo: Allow selecting from a dropdown list of pre-defined
                      # geocode system names.
                      Field("tag",
@@ -832,11 +874,11 @@ class S3CAPModel(S3Model):
         #          deduplicate = self.cap_area_tag_deduplicate,
         #          )
 
-
         # ---------------------------------------------------------------------
         # Pass names back to global scope (s3.*)
         return dict(cap_alert_id = alert_id,
                     cap_alert_represent = alert_represent,
+                    cap_area_represent = area_represent,
                     cap_info_represent = info_represent,
                     )
 
@@ -941,15 +983,15 @@ class S3CAPModel(S3Model):
         """
 
         if "vars" in form:
-            vars = form.vars
+            form_vars = form.vars
         elif "id" in form:
-            vars = form
+            form_vars = form
         elif hasattr(form, "vars"):
-            vars = form.vars
+            form_vars = form.vars
         else:
-            vars = form
+            form_vars = form
 
-        info_id = vars.id
+        info_id = form_vars.id
         if not info_id:
             return
 
@@ -966,25 +1008,6 @@ class S3CAPModel(S3Model):
 
         return True
 
-    # -------------------------------------------------------------------------
-    @staticmethod
-    def area_represent(id, row=None):
-        """
-            Represent an alert information area
-        """
-
-        if row:
-            pass
-        elif not id:
-            return current.messages["NONE"]
-        else:
-            db = current.db
-            table = db.cap_area
-            row = db(table.id == id).select(table.name,
-                                            limitby=(0, 1)).first()
-
-        return row.name
-
 # =============================================================================
 def cap_info_labels():
     """
@@ -992,8 +1015,7 @@ def cap_info_labels():
     """
 
     T = current.T
-    return dict(
-                language=T("Language"),
+    return dict(language=T("Language"),
                 category=T("Category"),
                 event=T("Event"),
                 response_type=T("Response type"),
@@ -1042,8 +1064,9 @@ def cap_rheader(r):
             s3db = current.s3db
             tablename = r.tablename
             if tablename == "cap_alert":
+                record_id = record.id
                 table = s3db.cap_info
-                query = (table.alert_id == record.id)
+                query = (table.alert_id == record_id)
                 row = current.db(query).select(table.id,
                                                limitby=(0, 1)).first()
                 if record.is_template:
@@ -1062,9 +1085,9 @@ def cap_rheader(r):
                     rheader_tabs = s3_rheader_tabs(r, tabs)
 
                     rheader = DIV(TABLE(TR(TH("%s: " % T("Template")),
-                                           TD(A(S3CAPModel.template_represent(record.id, record),
+                                           TD(A(S3CAPModel.template_represent(record_id, record),
                                                 _href=URL(c="cap", f="template",
-                                                          args=[record.id, "update"]))),
+                                                          args=[record_id, "update"]))),
                                            ),
                                         ),
                                   rheader_tabs,
@@ -1074,32 +1097,48 @@ def cap_rheader(r):
                     if not (row and row.id):
                         error = DIV(T("You need to create at least one alert information item in order to be able to broadcast this alert!"),
                                     _class="error")
+                        export_btn = ""
                     else:
                         error = ""
+                        export_btn = A(DIV(_class="export_cap_large"),
+                                       _href=URL(c="cap", f="alert", args=["%s.cap" % record_id]),
+                                       _target="_blank",
+                                       )
 
+                    table = s3db.cap_area
+                    query = (table.alert_id == record_id)
+                    row = current.db(query).select(table.id,
+                                                   limitby=(0, 1)).first()
+                    if row:
+                        # We have an Area, so we can add Locations
+                        location_tab = (T("Location"), "location")
+                    else:
+                        location_tab = ""
                     tabs = [(T("Alert Details"), None),
                             (T("Information"), "info"),
                             (T("Area"), "area"),
+                            location_tab,
                             (T("Resource Files"), "resource"),
                             ]
 
                     rheader_tabs = s3_rheader_tabs(r, tabs)
 
                     rheader = DIV(TABLE(TR(TH("%s: " % T("Alert")),
-                                           TD(A(s3db.cap_alert_represent(record.id, record),
+                                           TD(A(s3db.cap_alert_represent(record_id, record),
                                                 _href=URL(c="cap", f="alert",
-                                                          args=[record.id, "update"]))),
+                                                          args=[record_id, "update"]))),
                                            ),
+                                        TR(export_btn)
                                         ),
                                   rheader_tabs,
                                   error
                                   )
 
             elif tablename == "cap_area":
-                
+                # Shouldn't ever be called
                 tabs = [(T("Area"), None),
-                        (T("Locations"), "area_location"),
-                        #(T("Geocodes"), "area_tag"),
+                        (T("Locations"), "location"),
+                        #(T("Geocodes"), "tag"),
                         ]
                 rheader_tabs = s3_rheader_tabs(r, tabs)
                 rheader = DIV(TABLE(TR(TH("%s: " % T("Alert")),
@@ -1113,7 +1152,7 @@ def cap_rheader(r):
                                                       args=[record.info_id, "update"]))),
                                        ),
                                     TR(TH("%s: " % T("Area")),
-                                       TD(A(S3CAPModel.area_represent(record.id, record),
+                                       TD(A(s3db.cap_area_represent(record.id, record),
                                             _href=URL(c="cap", f="area",
                                                       args=[record.id, "update"]))),
                                        ),
@@ -1125,7 +1164,7 @@ def cap_rheader(r):
                 # Shouldn't ever be called
                 # We need the rheader only for the link back to the area.
                 rheader = DIV(TABLE(TR(TH("%s: " % T("Area")),
-                                       TD(A(S3CAPModel.area_represent(record.area_id),
+                                       TD(A(s3db.cap_area_represent(record.area_id),
                                             _href=URL(c="cap", f="area",
                                                       args=[record.area_id, "update"]))),
                                        ),
@@ -1194,40 +1233,234 @@ def update_alert_id(tablename):
             # Nothing to do
             return
 
-        # Look up from the info
-        info_id = form_vars.get("info_id", None)
-        if not info_id:
-            # Get the full record
-            _id = form_vars.id
-            if not _id:
-                return
-    
-            db = current.db
-            table = db[tablename]
-            item = db(table.id == _id).select(table.alert_id,
-                                              table.info_id,
-                                              limitby=(0, 1)).first()
+        # Look up from the info/area
+        _id = form_vars.id
+        if not _id:
+            return
+
+        db = current.db
+        table = db[tablename]
+
+        if tablename == "cap_area_location":
+            area_id = form_vars.get("ares_id", None)
+            if not area_id:
+                # Get the full record
+                item = db(table.id == _id).select(table.alert_id,
+                                                  table.area_id,
+                                                  limitby=(0, 1)).first()
+                try:
+                    alert_id = item.alert_id
+                    area_id = item.area_id
+                except:
+                    # Nothing we can do
+                    return
+                if alert_id:
+                    # Nothing to do
+                    return
+
+            atable = db.cap_area
+            area = db(atable.id == area_id).select(atable.alert_id,
+                                                   limitby=(0, 1)).first()
             try:
-                alert_id = item.alert_id
-                info_id = item.info_id
+                alert_id = area.alert_id
             except:
                 # Nothing we can do
                 return
-            if alert_id:
-                # Nothing to do
-                return
+        else:    
+            info_id = form_vars.get("info_id", None)
+            if not info_id:
+                # Get the full record
+                item = db(table.id == _id).select(table.alert_id,
+                                                  table.info_id,
+                                                  limitby=(0, 1)).first()
+                try:
+                    alert_id = item.alert_id
+                    info_id = item.info_id
+                except:
+                    # Nothing we can do
+                    return
+                if alert_id:
+                    # Nothing to do
+                    return
 
-        itable = db.cap_info
-        info = db(itable.id == info_id).select(itable.alert_id,
-                                               limitby=(0, 1)).first()
-        try:
-            alert_id = info.alert_id
-        except:
-            # Nothing we can do
-            return
+            itable = db.cap_info
+            info = db(itable.id == info_id).select(itable.alert_id,
+                                                   limitby=(0, 1)).first()
+            try:
+                alert_id = info.alert_id
+            except:
+                # Nothing we can do
+                return
 
         db(table.id == _id).update(alert_id = alert_id)
 
     return func
+
+# =============================================================================
+def cap_gis_location_xml_post_parse(element, record):
+    """
+        Convert CAP polygon representation to WKT; extract circle lat lon.
+        Latitude and longitude in CAP are expressed as signed decimal values in
+        coordinate pairs:
+            latitude,longitude
+        The circle text consists of:
+            latitude,longitude radius
+        where the radius is in km.
+        Polygon text consists of a space separated sequence of at least 4
+        coordinate pairs where the first and last are the same.
+            lat1,lon1 lat2,lon2 lat3,lon3 ... lat1,lon1
+    """
+    # ToDo: Ought we set anything for the name of these locations?
+
+    cap_polygons = element.xpath("cap_polygon")
+    if cap_polygons:
+        cap_polygon_text = cap_polygons[0].text
+        # CAP polygons and WKT have opposite separator conventions:
+        # CAP has spaces between coordinate pairs and within pairs the
+        # coordinates are separated by comma, and vice versa for WKT.
+        # Unfortunately, CAP and WKT (as we use it) also have opposite
+        # orders of lat and lon. CAP has lat lon, WKT has lon lat.
+        # Both close the polygon by repeating the first point.
+        cap_points_text = cap_polygon_text.split()
+        cap_points = [cpoint.split(",") for cpoint in cap_points_text]
+        # @ToDo: Should we try interpreting all the points as decimal numbers,
+        # and failing validation if they're wrong?
+        wkt_points = ["%s %s" % (cpoint[1], cpoint[0]) for cpoint in cap_points]
+        wkt_polygon_text = "POLYGON ((%s))" % ", ".join(wkt_points)
+        record.wkt = wkt_polygon_text
+        return
+
+    #cap_tags = element.xpath("resource[@name='gis_location_tag']")
+    #cap_circle_tags = element.xpath("resource[@name='gis_location_tag']/data[@field='tag' and text()='cap_circle']")
+    cap_circle_values = element.xpath("resource[@name='gis_location_tag']/data[@field='tag' and text()='cap_circle']/../data[@field='value']")
+    #if cap_tags:
+    #if cap_circle_tags:
+    if cap_circle_values:
+        #cap_circle_tag = cap_tags[0].xpath("data[@field='tag']")
+        #cap_circle_tag = cap_circle.xpath("data[@field='tag' and text()='cap_circle']")
+        #if cap_circle_tag and cap_circle_tag.text == "cap_circle":
+        #if cap_circle_tag:
+            #cap_circle_values = cap_circle_tags[0].xpath("../data[@field='value']")
+            cap_circle_text = cap_circle_values[0].text
+            coords, radius = cap_circle_text.split()
+            lat, lon = coords.split(",")
+            try:
+                # If any of these fail to interpret as numbers, the circle was
+                # badly formatted. For now, we don't try to fail validation,
+                # but just don't set the lat, lon.
+                lat = float(lat)
+                lon = float(lon)
+            except ValueError:
+                return
+            record.lat = lat
+            record.lon = lon
+
+    return
+
+# -----------------------------------------------------------------------------
+class CAPImportFeed(S3Method):
+    """
+        Import CAP alerts from a URL
+    """
+
+    # -------------------------------------------------------------------------
+    @staticmethod
+    def apply_method(r, **attr):
+        """
+            Apply method.
+
+            @param r: the S3Request
+            @param attr: controller options for this request
+        """
+
+        if r.representation == "html":
+
+            T = current.T
+            request = current.request
+            response = current.response
+
+            title = T("Import from Feed URL")
+
+            # @ToDo: use Formstyle
+            form = FORM(
+                    TABLE(
+                        TR(TD(DIV(B("%s:" % T("URL")),
+                                  SPAN(" *", _class="req"))),
+                           TD(INPUT(_type="text", _name="url",
+                                    _id="url", _value="")),
+                           TD(),
+                           ),
+                        TR(TD(B("%s: " % T("User"))),
+                           TD(INPUT(_type="text", _name="user",
+                                    _id="user", _value="")),
+                           TD(),
+                           ),
+                        TR(TD(B("%s: " % T("Password"))),
+                           TD(INPUT(_type="text", _name="password",
+                                    _id="password", _value="")),
+                           TD(),
+                           ),
+                        TR(TD(B("%s: " % T("Ignore Errors?"))),
+                           TD(INPUT(_type="checkbox", _name="ignore_errors",
+                                    _id="ignore_errors")),
+                           TD(),
+                           ),
+                        TR(TD(),
+                           TD(INPUT(_type="submit", _value=T("Import"))),
+                           TD(),
+                           )
+                        )
+                    )
+
+            response.view = "create.html"
+            output = dict(title=title,
+                          form=form)
+
+            if form.accepts(request.vars, current.session):
+
+                form_vars = form.vars
+                url = form_vars.get("url", None)
+                if not url:
+                    response.error = T("URL is required")
+                    return output
+                # @ToDo:
+                username = form_vars.get("username", None)
+                password = form_vars.get("password", None)
+                try:
+                    file = fetch(url)
+                except urllib2.URLError:
+                    response.error = str(sys.exc_info()[1])
+                    return output
+                except urllib2.HTTPError:
+                    response.error = str(sys.exc_info()[1])
+                    return output
+
+                File = StringIO(file)
+                stylesheet = os.path.join(request.folder, "static", "formats",
+                                          "cap", "import.xsl")
+                xml = current.xml
+                tree = xml.parse(File)
+
+                resource = current.s3db.resource("cap_alert")
+                s3xml = xml.transform(tree, stylesheet_path=stylesheet,
+                                      name=resource.name)
+                try:
+                    resource.import_xml(s3xml,
+                                        ignore_errors=form_vars.get("ignore_errors", None))
+                except:
+                    response.error = str(sys.exc_info()[1])
+                else:
+                    import_count = resource.import_count
+                    if import_count:
+                        response.confirmation = "%s %s" % \
+                            (import_count,
+                             T("Alerts successfully imported."))
+                    else:
+                        response.information = T("No Alerts available.")
+
+            return output
+
+        else:
+            raise HTTP(501, current.ERROR.BAD_METHOD)
 
 # END =========================================================================
