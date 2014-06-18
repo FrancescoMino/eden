@@ -72,10 +72,10 @@
      <li><a class='home' href='/{{=appname}}/default/index'><img src='/{{=appname}}/static/img/sahanalarge_14.png' alt='Sahana'/></a></li>
      <li><a href='/{{=appname}}/default/index/newsfeed'> <i class='icon-news'></i> {{=T("News Feed")}}</a></li>
      <li><a href='/{{=appname}}/gis/index'><i class='icon-map'></i> {{=T("Map")}}</a></li>
-     <li><a href='/{{=appname}}/project/project'><i class='icon-project'></i> {{=T("Projects")}}</a></li>
+     <li><a href='/{{=appname}}/project/project/summary'><i class='icon-project'></i> {{=T("Projects")}}</a></li>
      <li class='dropdown'> <a href='#' class='dropdown-toggle top-level' id='profiles' data-toggle='dropdown'><i class='icon-folder-open-alt'></i> {{=T("Profiles")}}<b class='caret'></b></a>
       <ul class='dropdown-menu' role='menu' aria-labelledby='profiles'>
-       <li role='menuitem'><a href='/{{=appname}}/event/event/summary' tabindex='-1' class='menu-item'><i class='icon-incident'></i> {{=T("Disasters")}}</a></li>
+       <li role='menuitem'><a href='/{{=appname}}/event/event/datalist' tabindex='-1' class='menu-item'><i class='icon-incident'></i> {{=T("Disasters")}}</a></li>
        <li role='menuitem'><a href='/{{=appname}}/gis/location/datalist' tabindex='-1' class='menu-item'><i class='icon-map'></i> {{=T("Provinces")}}</a></li>
        <li role='menuitem'><a href='/{{=appname}}/org/organisation/datalist' tabindex='-1' class='menu-item'><i class='icon-sitemap'></i> {{=T("Stakeholders")}}</a></li>
       </ul>
@@ -84,6 +84,7 @@
       <ul class='dropdown-menu' role='menu' aria-labelledby='more'>
        <li role='menuitem'><a href='/{{=appname}}/org/resource' tabindex='-1' class='menu-item'><i class='icon-resource'></i> {{=T("Resource Inventory")}}</a></li>
        <li role='menuitem'><a href='/{{=appname}}/pr/person' tabindex='-1' class='menu-item'><i class='icon-contact'></i> {{=T("Contact Directory")}}</a></li>
+       <li role='menuitem'><a href='/{{=appname}}/stats/demographic_data/summary' tabindex='-1' class='menu-item'><i class='icon-align-left'></i> {{=T("Demographics")}}</a></li>
        <li role='menuitem'><a href='/{{=appname}}/doc/document' tabindex='-1' class='menu-item'><i class='icon-file-alt'></i> {{=T("Documents")}}</a></li>
        <li role='menuitem'><a href='/{{=appname}}/default/index/glossary' tabindex='-1' class='menu-item'><i class='icon-list'></i> {{=T("Glossary")}}</a></li>
        <li role='menuitem'><a href='/{{=appname}}/default/index/links' tabindex='-1' class='menu-item'><i class='icon-external-link'></i> {{=T("Links")}}</a></li>
