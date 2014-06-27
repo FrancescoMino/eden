@@ -56,8 +56,8 @@ except ImportError:
         import gluon.contrib.simplejson as json # fallback to pure-Python module
 
 from gluon import current
+from gluon.html import A, TAG
 from gluon.http import HTTP
-from gluon.html import TAG
 from gluon.validators import IS_EMPTY_OR
 from gluon.dal import Row, Rows, Table, Field, Expression
 from gluon.storage import Storage
@@ -385,6 +385,9 @@ class S3Resource(object):
             link.actuate = component.actuate
             link.autodelete = component.autodelete
             link.multiple = component.multiple
+            # @todo: possible ambiguity if the same link is used
+            #        in multiple components (e.g. filtered or 3-way),
+            #        need a better aliasing mechanism here
             self.links[link.name] = link
 
         self.components[alias] = component
@@ -1329,10 +1332,11 @@ class S3Resource(object):
         append = qfields.append
         for f in table.fields:
             
-            if f in ("wkt", "the_geom") and \
-               (tablename == "gis_location" or \
-                tablename.startswith("gis_layer_shapefile_")):
-                    
+            if tablename == "gis_location" and \
+               ((f == "the_geom") or (f == "wkt" and current.auth.permission.format != "cap")):
+                # Filter out bulky Polygons
+                continue
+            elif f in ("wkt", "the_geom")  and tablename.startswith("gis_layer_shapefile_"):
                 # Filter out bulky Polygons
                 continue
 
@@ -3149,8 +3153,8 @@ class S3Resource(object):
 
         if rfields is None or dfields is None:
             if self.tablename == "gis_location":
-                if "wkt" not in skip:
-                    # Skip Bulky WKT fields
+                if "wkt" not in skip and current.auth.permission.format != "cap":
+                    # Skip bulky WKT fields
                     skip.append("wkt")
                 if current.deployment_settings.get_gis_spatialdb() and \
                    "the_geom" not in skip:

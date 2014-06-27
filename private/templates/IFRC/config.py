@@ -19,6 +19,13 @@ settings = current.deployment_settings
     Template settings for IFRC
 """
 
+# -----------------------------------------------------------------------------
+# Pre-Populate
+settings.base.prepopulate = ("IFRC", "IFRC/Train")
+
+settings.base.system_name = T("Resource Management System")
+settings.base.system_name_short = T("RMS")
+
 # =============================================================================
 # System Settings
 # -----------------------------------------------------------------------------
@@ -146,13 +153,13 @@ def ifrc_realm_entity(table, row):
     use_user_organisation = False
     # Suppliers & Partners are owned by the user's organisation
     if realm_entity == 0 and tablename == "org_organisation":
-        ott = s3db.org_organisation_type
-        query = (table.id == row.id) & \
-                (table.organisation_type_id == ott.id)
-        row = db(query).select(ott.name,
+        ottable = s3db.org_organisation_type
+        ltable = db.org_organisation_organisation_type
+        query = (ltable.organisation_id == row.id) & \
+                (ltable.organisation_type_id == ottable.id)
+        row = db(query).select(ottable.name,
                                limitby=(0, 1)
                                ).first()
-
         if row and row.name != "Red Cross / Red Crescent":
             use_user_organisation = True
 
@@ -170,13 +177,6 @@ def ifrc_realm_entity(table, row):
     return realm_entity
 
 settings.auth.realm_entity = ifrc_realm_entity
-
-# -----------------------------------------------------------------------------
-# Pre-Populate
-settings.base.prepopulate = ("IFRC", "IFRC_Train")
-
-settings.base.system_name = T("Resource Management System")
-settings.base.system_name_short = T("RMS")
 
 # -----------------------------------------------------------------------------
 # Theme (folder to use for views/layout.html)
@@ -319,9 +319,10 @@ settings.hrm.staff_experience = False
 settings.hrm.use_skills = False
 
 # -----------------------------------------------------------------------------
-def ns_only(f, required = True, branches = True, updateable=True):
+def ns_only(f, required=True, branches=True, updateable=True):
     """
-        Function to configure an organisation_id field to be restricted to just NS/Branch
+        Function to configure an organisation_id field to be restricted to just
+        NS/Branch
     """
 
     # Label
@@ -341,12 +342,15 @@ def ns_only(f, required = True, branches = True, updateable=True):
         # No IFRC prepop done - skip (e.g. testing impacts of CSS changes in this theme)
         return
 
+    # Filter by type
+    ltable = db.org_organisation_organisation_type
+    rows = db(ltable.organisation_type_id == type_id).select(ltable.organisation_id)
+    filter_opts = [row.organisation_id for row in rows]
+
     auth = current.auth
     s3_has_role = auth.s3_has_role
     Admin = s3_has_role("ADMIN")
     if branches:
-        not_filterby = None
-        not_filter_opts = None
         if Admin:
             parent = True
         else:
@@ -366,22 +370,21 @@ def ns_only(f, required = True, branches = True, updateable=True):
     else:
         # Keep the represent function as simple as possible
         parent = False
+        # Exclude branches
         btable = current.s3db.org_organisation_branch
-        rows = db(btable.deleted != True).select(btable.branch_id)
-        branches = [row.branch_id for row in rows]
-        not_filterby = "id"
-        not_filter_opts = branches
+        rows = db((btable.deleted != True) &
+                  (btable.branch_id.belongs(filter_opts))).select(btable.branch_id)
+        filter_opts = list(set(filter_opts) - set(row.branch_id for row in rows))
 
-    represent = current.s3db.org_OrganisationRepresent(parent=parent)
+    organisation_represent = current.s3db.org_OrganisationRepresent
+    represent = organisation_represent(parent=parent)
     f.represent = represent
 
     from s3.s3validators import IS_ONE_OF
     requires = IS_ONE_OF(db, "org_organisation.id",
                          represent,
-                         filterby = "organisation_type_id",
-                         filter_opts = (type_id,),
-                         not_filterby = not_filterby,
-                         not_filter_opts=not_filter_opts,
+                         filterby = "id",
+                         filter_opts = filter_opts,
                          updateable = updateable,
                          orderby = "org_organisation.name",
                          sort = True)
@@ -389,16 +392,36 @@ def ns_only(f, required = True, branches = True, updateable=True):
         from gluon import IS_EMPTY_OR
         requires = IS_EMPTY_OR(requires)
     f.requires = requires
-    # Dropdown not Autocomplete
-    f.widget = None
+
+    if parent:
+        # Use hierarchy-widget
+        from s3 import FS, S3HierarchyWidget
+        # No need for parent in represent (it's a hierarchy view)
+        node_represent = organisation_represent(parent=False)
+        # Filter by type
+        node_filter = (FS("organisation_organisation_type.organisation_type_id") == type_id)
+        # No need to exclude branches (we wouldn't be here if we didn't use branches)
+        f.widget = S3HierarchyWidget(lookup="org_organisation",
+                                     filter=node_filter,
+                                     represent=node_represent,
+                                     multiple=False,
+                                     leafonly=False,
+                                     )
+        # @todo: Dynamic update of HierarchyWidget not supported yet
+        #        => hide the add-resource link until fixed
+        skip_add_resource_link = True
+    else:
+        # Dropdown not Autocomplete
+        f.widget = None
+        skip_add_resource_link = False
+
     # Comment
-    if Admin or s3_has_role("ORG_ADMIN"):
+    if (Admin or s3_has_role("ORG_ADMIN")) and not skip_add_resource_link:
         # Need to do import after setting Theme
         from s3layouts import S3AddResourceLink
         from s3.s3navigation import S3ScriptItem
-        add_link = S3AddResourceLink(c="org",
-                                     f="organisation",
-                                     vars={"organisation.organisation_type_id$name":"Red Cross / Red Crescent"},
+        add_link = S3AddResourceLink(c="org", f="organisation",
+                                     vars={"organisation_type.name":"Red Cross / Red Crescent"},
                                      label=T("Create National Society"),
                                      title=T("National Society"),
                                      )
@@ -1182,42 +1205,43 @@ def customise_org_organisation_controller(**attr):
                 list_fields = ["id",
                                "name",
                                "acronym",
-                               "organisation_type_id",
-                               #(T("Sectors"), "sector.name"),
+                               "organisation_organisation_type.organisation_type_id",
                                "country",
                                "website"
                                ]
                 
-                type_filter = r.get_vars.get("organisation.organisation_type_id$name",
+                type_filter = r.get_vars.get("organisation_type.name",
                                              None)
+                type_label = T("Type")
                 if type_filter:
                     type_names = type_filter.split(",")
                     if len(type_names) == 1:
                         # Strip Type from list_fields
-                        list_fields.remove("organisation_type_id")
+                        list_fields.remove("organisation_organisation_type.organisation_type_id")
+                        type_label = ""
 
                     if type_filter == "Red Cross / Red Crescent":
                         # Modify filter_widgets
-                        filter_widgets = s3db.get_config("org_organisation", "filter_widgets")
+                        filter_widgets = s3db.get_config("org_organisation",
+                                                         "filter_widgets")
                         # Remove type (always 'RC')
                         filter_widgets.pop(1)
                         # Remove sector (not relevant)
                         filter_widgets.pop(1)
 
                         # Modify CRUD Strings
-                        ADD_NS = T("Create National Society")
                         s3.crud_strings.org_organisation = Storage(
-                            label_create=ADD_NS,
-                            title_display=T("National Society Details"),
-                            title_list=T("Red Cross & Red Crescent National Societies"),
-                            title_update=T("Edit National Society"),
-                            title_upload=T("Import Red Cross & Red Crescent National Societies"),
-                            label_list_button=T("List Red Cross & Red Crescent National Societies"),
-                            label_delete_button=T("Delete National Society"),
-                            msg_record_created=T("National Society added"),
-                            msg_record_modified=T("National Society updated"),
-                            msg_record_deleted=T("National Society deleted"),
-                            msg_list_empty=T("No Red Cross & Red Crescent National Societies currently registered")
+                            label_create = T("Create National Society"),
+                            title_display = T("National Society Details"),
+                            title_list = T("Red Cross & Red Crescent National Societies"),
+                            title_update = T("Edit National Society"),
+                            title_upload = T("Import Red Cross & Red Crescent National Societies"),
+                            label_list_button = T("List Red Cross & Red Crescent National Societies"),
+                            label_delete_button = T("Delete National Society"),
+                            msg_record_created = T("National Society added"),
+                            msg_record_modified = T("National Society updated"),
+                            msg_record_deleted = T("National Society deleted"),
+                            msg_list_empty = T("No Red Cross & Red Crescent National Societies currently registered")
                             )
                         # Add Region to list_fields
                         list_fields.insert(-1, "region_id")
@@ -1232,19 +1256,19 @@ def customise_org_organisation_controller(**attr):
 
                 if r.interactive:
                     r.table.country.label = T("Country")
-                    from s3.s3forms import S3SQLCustomForm#, S3SQLInlineComponentCheckbox
+                    from s3.s3forms import S3SQLCustomForm, S3SQLInlineLink
                     crud_form = S3SQLCustomForm(
                         "name",
                         "acronym",
-                        "organisation_type_id",
+                        S3SQLInlineLink(
+                            "organisation_type",
+                            field = "organisation_type_id",
+                            label = type_label,
+                            multiple = False,
+                            #widget = "hierarchy",
+                        ),
                         "region_id",
                         "country",
-                        #S3SQLInlineComponentCheckbox(
-                        #    "sector",
-                        #    label = T("Sectors"),
-                        #    field = "sector_id",
-                        #    cols = 3,
-                        #),
                         "phone",
                         "website",
                         "logo",
@@ -1761,6 +1785,7 @@ S3OptionsFilter({
         "human_resource_id",
         # Disabled since we need organisation_id filtering to either organisation_type_id == RC or NOT
         # & also hiding Branches from RCs
+        # & also rewriting for organisation_type_id via link table
         # Partner NS
         # S3SQLInlineComponent(
             # "organisation",

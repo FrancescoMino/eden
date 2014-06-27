@@ -183,6 +183,14 @@ class S3LocationModel(S3Model):
                   label = T("Longitude"),
                   requires = IS_EMPTY_OR(IS_LON()),
                   ),
+            # Required until Shapely/Geos/GeoJSON support CIRCULARSTRING
+            Field("radius", "double",
+                  label = T("Radius"),
+                  # Only used for CAP currently
+                  readable = False,
+                  writable = False,
+                  comment = "m",
+                  ),
             Field("wkt", "text",
                   label = "WKT (Well-Known Text)",
                   represent = self.gis_wkt_represent,
@@ -303,13 +311,13 @@ class S3LocationModel(S3Model):
 
         # Reusable field to include in other table definitions
         location_id = S3ReusableField("location_id", "reference %s" % tablename,
-                                      sortby = "name",
                                       label = T("Location"),
                                       ondelete = "RESTRICT",
                                       represent = gis_location_represent,
                                       requires = IS_EMPTY_OR(
                                                     IS_LOCATION_SELECTOR2()
                                                     ),
+                                      sortby = "name",
                                       widget = S3LocationSelectorWidget2(show_address=True,
                                                                          show_map=settings.get_gis_map_selector(),
                                                                          show_postcode=settings.get_gis_postcode_selector(),
@@ -331,12 +339,13 @@ class S3LocationModel(S3Model):
                                                  filter_opts = ["L0"],
                                                  sort=True))
         country_id = S3ReusableField("location_id", "reference %s" % tablename,
-                                     sortby = "name",
                                      label = messages.COUNTRY,
-                                     requires = country_requires,
-                                     widget = S3MultiSelectWidget(multiple=False),
+                                     ondelete = "RESTRICT",
                                      represent = represent,
-                                     ondelete = "RESTRICT")
+                                     requires = country_requires,
+                                     sortby = "name",
+                                     widget = S3MultiSelectWidget(multiple=False),
+                                     )
 
         list_fields = ["id",
                        "name",
@@ -418,7 +427,7 @@ class S3LocationModel(S3Model):
                 gis_feature_type_opts = gis_feature_type_opts,
                 )
 
-    # ---------------------------------------------------------------------
+    # -------------------------------------------------------------------------
     @staticmethod
     def gis_country_code_represent(code):
         """ FK representation """
@@ -4793,6 +4802,9 @@ def source_url_field():
 
 # =============================================================================
 def gis_layer_folder():
+    """
+        @ToDo: Move this to gis_layer_config to allow the same layer to be in different folders in different configs
+    """
     T = current.T
     FOLDER = T("Folder")
     return S3ReusableField("dir", length=64,
@@ -4804,6 +4816,9 @@ def gis_layer_folder():
 
 # =============================================================================
 def gis_opacity():
+    """
+        @ToDo: Move this to gis_layer_config as it's really a part of the style
+    """
     T = current.T
     OPACITY = T("Opacity")
     return S3ReusableField("opacity", "double",

@@ -22,12 +22,7 @@ settings = current.deployment_settings
 """
 
 # Pre-Populate
-# http://eden.sahanafoundation.org/wiki/DeveloperGuidelines/PrePopulate
-# Configure/disable pre-population of the database.
-# To pre-populate the database On 1st run should specify directory(s) in
-# /private/templates/
-
-settings.base.prepopulate = ["EVASS"]
+settings.base.prepopulate = ["EVASS", "demo/users"]
 
 settings.base.system_name = T("EVASS - Sahana Eden for Italy")
 settings.base.system_name_short = T("Sahana Eden for Italy")

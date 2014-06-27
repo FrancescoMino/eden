@@ -20,6 +20,13 @@ settings = current.deployment_settings
     Template settings for Community Resilience Mapping Tool
 """
 
+# -----------------------------------------------------------------------------
+# Pre-Populate
+settings.base.prepopulate = ["CRMT", "demo/users"]
+
+settings.base.system_name = T("Community Resilience Mapping Tool")
+settings.base.system_name_short = T("CRMT")
+
 # =============================================================================
 # US Settings
 # -----------------------------------------------------------------------------
@@ -104,13 +111,6 @@ def audit_write(method, tablename, form, record, representation):
     return False
 
 settings.security.audit_write = audit_write
-
-# -----------------------------------------------------------------------------
-# Pre-Populate
-settings.base.prepopulate = ["CRMT"]
-
-settings.base.system_name = T("Community Resilience Mapping Tool")
-settings.base.system_name_short = T("CRMT")
 
 # -----------------------------------------------------------------------------
 # Theme (folder to use for views/layout.html)
@@ -204,12 +204,12 @@ current.response.menu = menu
 # -----------------------------------------------------------------------------
 # Summary Pages
 settings.ui.summary = [{"common": True,
-                        "name": "cms",
-                        "widgets": [{"method": "cms"}]
-                        },
-                       {"common": True,
                         "name": "add",
                         "widgets": [{"method": "create"}],
+                        },
+                       {"common": True,
+                        "name": "cms",
+                        "widgets": [{"method": "cms"}]
                         },
                        {"name": "table",
                         "label": "Table",
@@ -344,6 +344,10 @@ settings.hrm.teams = False
 #
 # Make Facility Types Hierarchical
 settings.org.facility_types_hierarchical = True
+# Make Organisation Types Hierarchical
+settings.org.organisation_types_hierarchical = True
+# Make Organisation Types Multiple
+settings.org.organisation_types_multiple = True
 # Enable the use of Organisation Groups
 settings.org.groups = "Coalition"
 # Set the label for Sites
@@ -674,6 +678,7 @@ def customise_project_activity_controller(**attr):
             s3.crud_strings[tablename].title_update = T("Update Activities")
             table.date.label = T("Date")
             table.name.label = T("Activity Name")
+            table.comments.label = T("Description")
             table.location_id.represent = s3db.gis_LocationRepresent(address_only=True)
 
             # Custom Form (Read/Create/Update inc embedded Summary)
@@ -725,8 +730,13 @@ def customise_project_activity_controller(**attr):
                     name = "file",
                     label = T("Files"),
                     fields = [("", "file"),
-                              #"comments",
                               ],
+                    comment =  DIV(_class="tooltip",
+                                   _title="%s|%s" % 
+                                          (T("Files"),
+                                           T("Upload Photos, Promotional Material, Documents or Reports related to the Activity")
+                                           )
+                                   )
                 ),
                 "comments",
             )
@@ -891,6 +901,8 @@ def customise_org_organisation_controller(**attr):
             list_fields = ["id",
                            "name",
                            (T("Coalition Member"), "group_membership.group_id"),
+                           (T("Address"), "facility.location_id"),
+                           #"facility.location_id$addr_postcode",
                            (T("Sectors"), "sector_organisation.sector_id"),
                            (T("Services"), "service_organisation.service_id"),
                            "website",
@@ -908,7 +920,7 @@ def customise_org_organisation_controller(**attr):
             table.name.label = T("Organization Name")
 
             if method in ("summary", "report"):
-                from s3.s3filter import S3OptionsFilter, S3TextFilter
+                from s3.s3filter import S3OptionsFilter, S3TextFilter, S3HierarchyFilter
                 filter_widgets = [S3TextFilter(["name",
                                                 "group_membership.group_id",
                                                 "sector_organisation.sector_id",
@@ -929,6 +941,10 @@ def customise_org_organisation_controller(**attr):
                                                   label = T("Service"),
                                                   header = True,
                                                   ),
+                                  S3HierarchyFilter("organisation_organisation_type.organisation_type_id",
+                                                    label = T("Type of Organization"),
+                                                    #multiple = False,
+                                                    )
                                   ]
 
                 s3.crud_strings.org_organisation.title_report = T("Organization Matrix")
@@ -1100,7 +1116,8 @@ def customise_org_organisation_controller(**attr):
                     # Not fully ready yet
                     S3SQLInlineComponent(
                         "facility",
-                        label = T("Address"),
+                        #label = T("Address"),
+                        label = "",
                         fields = [("", "location_id"),
                                   ],
                         multiple = False,
@@ -1541,7 +1558,7 @@ def customise_stats_people_controller(**attr):
             #table.location_id.represent = s3db.gis_LocationRepresent(address_only=True)
 
             s3.crud_strings[tablename] = Storage(
-                label_create = T("Add People"),
+                label_create = T("Add"),
                 title_display = T("People Details"),
                 title_list = T("People"),
                 title_update = T("Update People"),
@@ -1884,7 +1901,7 @@ def customise_vulnerability_risk_controller(**attr):
             table.location_id.represent = s3db.gis_LocationRepresent(address_only=True)
 
             s3.crud_strings[tablename] = Storage(
-                label_create = T("Create Hazard"),
+                label_create = T("Add"),
                 title_display = T("Hazard Details"),
                 title_list = T("Hazards"),
                 title_update = T("Update Hazard"),
