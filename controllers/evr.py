@@ -59,6 +59,8 @@ def person():
                                 )
 
         r.resource.configure(list_fields = ["id",
+                                            "case.organisation_id",
+                                            "shelter_registration.shelter_id",
                                             "first_name",
                                             #"middle_name",
                                             "last_name",
@@ -74,7 +76,7 @@ def person():
             levels = current.gis.get_relevant_hierarchy_levels()
                 
             # Filter widgets
-            from s3.s3filter import S3OptionsFilter, S3TextFilter, S3LocationFilter
+            from s3.s3filter import S3OptionsFilter, S3TextFilter, S3LocationFilter, S3DateFilter
             filter_widgets = [
                 S3TextFilter(["first_name",
                               #"middle_name",
@@ -99,6 +101,18 @@ def person():
                 S3OptionsFilter("person_details.religion",
                                 label = T("Religion"),
                                 ),
+                S3OptionsFilter("case.organisation_id",
+                                label = T("Organisation"),
+                                ),
+                S3OptionsFilter("shelter_registration.shelter_id",
+                                label = T("Shelter"),
+                                ),
+                S3DateFilter("shelter_registration.check_in_date",
+                             label = T("Check In Date")
+                             ),
+                S3DateFilter("shelter_registration.check_out_date",
+                             label = T("Check Out Date")
+                             ),
             ]
 
             # Custom Form for Persons

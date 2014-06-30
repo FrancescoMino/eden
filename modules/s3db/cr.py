@@ -453,6 +453,11 @@ class S3ShelterModel(S3Model):
                                 options = cr_shelter_status_filter_opts,
                                 none = True,
                                 ),
+                S3OptionsFilter("organisation_id",
+                                label = T("Organisation"),
+                                #Doesn't translate
+                                #represent = "%(name)s",
+                                ),
                 ]
         if dynamic:
             filter_widgets.append(S3RangeFilter("available_capacity_night",
