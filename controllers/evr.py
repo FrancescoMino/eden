@@ -70,16 +70,18 @@ def person():
         if r.interactive and not r.component:
 
             resource = r.resource
-
+            
+            levels = current.gis.get_relevant_hierarchy_levels()
+                
             # Filter widgets
-            from s3 import S3TextFilter
+            from s3.s3filter import S3OptionsFilter, S3TextFilter, S3LocationFilter
             filter_widgets = [
                 S3TextFilter(["first_name",
                               #"middle_name",
                               "last_name",
                               #"local_name",
                               "identity.value",
-                              "case.fiscal_code"
+                              "case.fiscal_code",
                               ],
                               label = T("Name and/or ID"),
                               comment = T("To search for a person, enter any of the "
@@ -87,6 +89,16 @@ def person():
                                           "number of a person, separated by spaces. "
                                           "You may use % as wildcard."),
                               ),
+                S3OptionsFilter("person_details.nationality",
+                                label = T("Nationality"),
+                                ),
+                S3LocationFilter("address.location_id",
+                                label = T("Place of Residence"),
+                                levels = levels,
+                                ),
+                S3OptionsFilter("person_details.religion",
+                                label = T("Religion"),
+                                ),
             ]
 
             # Custom Form for Persons

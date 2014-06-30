@@ -65,6 +65,7 @@ class S3EVRCaseModel(S3Model):
                                                            )
                                          ),
                            ),
+                     self.pr_group_id(),
                      s3_comments(),
                      *s3_meta_fields())
 
@@ -75,8 +76,9 @@ class S3EVRCaseModel(S3Model):
 #                                                fiscal_code),
 #                                                null=''
 #                                                )
+        
         self.configure(tablename,
-                       onaccept = self.evr_case_onaccept,
+                       onaccept = self.evr_case_onaccept,                     
                        )
         
         # ---------------------------------------------------------------------

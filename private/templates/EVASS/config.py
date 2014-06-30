@@ -565,7 +565,8 @@ def customise_pr_person_resource(r, tablename):
 settings.customise_pr_person_resource = customise_pr_person_resource
 
 def customise_pr_group_resource(r, tablename):
-
+    
+    messages = current.messages
     field = r.table.group_type
     pr_group_types = {1 : T("Family"),
                       2 : T("Tourist Group"),
