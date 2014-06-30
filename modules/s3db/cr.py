@@ -1064,7 +1064,7 @@ class S3ShelterRegistrationModel(S3Model):
     @staticmethod
     def unit_onvalidation(form):
         """
-            Check if the housing unit belongs to ( is registered in )the requested shelter
+            Check if the housing unit belongs to the requested shelter
         """
         
         db = current.db
@@ -1086,14 +1086,19 @@ class S3ShelterRegistrationModel(S3Model):
             elif current.request.controller == "cr":
                 shelter_id = current.request.args[0]
                 unit_id = form.vars.shelter_unit_id     
-            
-        record = db(htable.id == unit_id).select(htable.shelter_id).first()
         
-        shelter_value = str(record.shelter_id)
-        if shelter_value != shelter_id:
-            error = T("You have to select a housing unit related to this shelter")
-            form.errors["branch_id"] = error
-            current.response.error = error
+        if unit_id:
+            warning = T("Warning: No housing unit selected")
+            current.response.warning = warning
+        else:                
+            record = db(htable.id == unit_id).select(htable.shelter_id).first()
+        
+            shelter_value = str(record.shelter_id)
+            if shelter_value != shelter_id:
+                error = T("You have to select a housing unit belonged to the shelter")
+                form.errors["branch_id"] = error
+                current.response.error = error
+        return
            
     # -------------------------------------------------------------------------
     @staticmethod
