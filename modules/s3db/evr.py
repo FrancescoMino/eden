@@ -50,6 +50,8 @@ class S3EVRCaseModel(S3Model):
 
         define_table = self.define_table
         person_id = self.pr_person_id
+        group_id = self.pr_group_id
+        organisation_id = self.org_organisazion_id
         
         # ---------------------------------------------------------------------
         # Case Data
@@ -57,6 +59,8 @@ class S3EVRCaseModel(S3Model):
         tablename = "evr_case"
         define_table(tablename,
                      person_id(ondelete="CASCADE"),
+                     organisation_id(),
+                     group_id(label = "Group Membership"),
                      Field("fiscal_code", "string", length = 16,
                            label = T("Fiscal Code"),
                            comment = DIV(_class="tooltip",
@@ -65,7 +69,7 @@ class S3EVRCaseModel(S3Model):
                                                            )
                                          ),
                            ),
-                     self.pr_group_id(),
+                     
                      s3_comments(),
                      *s3_meta_fields())
 
