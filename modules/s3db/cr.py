@@ -744,8 +744,8 @@ class S3ShelterModel(S3Model):
                        "handicap_bath",
                        "capacity_day",
                        "capacity_night",                      
-                       "unit_availability_day",
-                       "unit_availability_night",
+                       "available_capacity_day",
+                       "available_capacity_night",
                        ]
         
         population_onaccept = lambda form: \
@@ -1087,7 +1087,7 @@ class S3ShelterRegistrationModel(S3Model):
                 shelter_id = current.request.args[0]
                 unit_id = form.vars.shelter_unit_id     
         
-        if unit_id:
+        if unit_id == None:
             warning = T("Warning: No housing unit selected")
             current.response.warning = warning
         else:                

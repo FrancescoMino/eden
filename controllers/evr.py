@@ -66,7 +66,6 @@ def person():
                                             "last_name",
                                             "gender",
                                             "date_of_birth",
-                                            (T("Age"), "age"),
                                             ])
 
         if r.interactive and not r.component:

@@ -74,7 +74,7 @@ class S3EVRCaseModel(S3Model):
                                      requires = self.org_organisation_requires(required=True),
                                      comment = DIV(_class="tooltip",
                                                    _title="%s|%s" % (T("Designed Organisation"),
-                                                                     T("Organisation designed to look after the evacuee"))),
+                                                                     T("Organisation designed to take care of evacuee"))),
                                      widget = org_widget,
                                      readable = enable_evr_organisation,
                                      writable = enable_evr_organisation, 

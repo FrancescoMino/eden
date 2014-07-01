@@ -337,7 +337,7 @@ settings.cr.shelter_housing_unit_management = True
 # Make Event Types Hierarchical
 #settings.event.types_hierarchical = True
 
-
+# -----------------------------------------------------------------------------
 # Evacuees
 # Group Types
 #settings.evr.group_types = {1: T("other"),
