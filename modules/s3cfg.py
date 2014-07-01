@@ -1840,6 +1840,13 @@ class S3Config(Storage):
             Show Evacuees physical description
         """
         return self.evr.get("physical_description", True)
+    
+    def get_evr_link_to_organisation(self):
+        """
+            Link evacuees to Organisations.  
+        """
+        return self.evr.get("link_to_organisation", False)
+
 
     # -------------------------------------------------------------------------
     # Hospital Registry

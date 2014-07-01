@@ -54,16 +54,17 @@ class S3EVRCaseModel(S3Model):
         person_id = self.pr_person_id
         group_id = self.pr_group_id
         organisation_id = self.org_organisation_id
-        
+                
         # ---------------------------------------------------------------------
         # Case Data
         #
+        enable_evr_organisation = settings.get_evr_link_to_organisation()
         organisation_label = settings.get_hrm_organisation_label()
         if settings.get_org_autocomplete():
             org_widget = S3OrganisationAutocompleteWidget(default_from_profile=True)
         else:
             org_widget = None            
-
+        
         tablename = "evr_case"
         define_table(tablename,
                      person_id(ondelete="CASCADE"),
@@ -75,6 +76,8 @@ class S3EVRCaseModel(S3Model):
                                                    _title="%s|%s" % (T("Designed Organisation"),
                                                                      T("Organisation designed to look after the evacuee"))),
                                      widget = org_widget,
+                                     readable = enable_evr_organisation,
+                                     writable = enable_evr_organisation, 
                                      ),
                      group_id(label = "Group Membership"),
                      Field("fiscal_code", "string", length = 16,

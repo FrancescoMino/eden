@@ -354,6 +354,8 @@ settings.cr.shelter_housing_unit_management = True
 settings.evr.physical_description = False
 # Uncomment to hide Emergency Contacts in Person Contacts page
 settings.pr.show_emergency_contacts = False
+# Uncomment to link evacuees to Organisations
+settings.evr.link_to_organisation= True
 # -----------------------------------------------------------------------------
 # Organisations
 # Uncomment to use an Autocomplete for Organisation lookup fields
