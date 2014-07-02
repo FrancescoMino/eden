@@ -107,10 +107,10 @@ def person():
                                 label = T("Shelter"),
                                 ),
                 S3DateFilter("shelter_registration.check_in_date",
-                             label = T("Check In Date")
+                             label = T("Check In")
                              ),
                 S3DateFilter("shelter_registration.check_out_date",
-                             label = T("Check Out Date")
+                             label = T("Check Out")
                              ),
             ]
 

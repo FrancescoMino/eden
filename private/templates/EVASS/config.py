@@ -358,8 +358,6 @@ settings.pr.show_emergency_contacts = False
 settings.evr.link_to_organisation= True
 # -----------------------------------------------------------------------------
 # Organisations
-# Uncomment to use an Autocomplete for Organisation lookup fields
-#settings.org.autocomplete = True
 # Enable the use of Organisation Branches
 settings.org.branches = True
 # Make Facility Types Hierarchical
@@ -370,7 +368,7 @@ settings.org.branches = True
 # Enable the use of Organisation Regions
 #settings.org.regions = True
 # Make Organisation Regions Hierarchical
-settings.org.regions_hierarchical = True
+#settings.org.regions_hierarchical = True
 # Make Services Hierarchical
 #settings.org.services_hierarchical = True
 # Set the length of the auto-generated org/site code the default is 10
@@ -401,7 +399,8 @@ settings.org.regions_hierarchical = True
 #     "vol_volunteer_cluster.vol_cluster_id"          : [],
 #     "vol_volunteer_cluster.vol_cluster_position_id" : [],
 #     }
-
+# Theme for the S3HierarchyWidget (folder in static/styles/jstree or relative to application)
+settings.ui.hierarchy_theme = "default"
 # -----------------------------------------------------------------------------
 # Human Resource Management
 # Uncomment to change the label for 'Staff'

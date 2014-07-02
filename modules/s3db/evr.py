@@ -48,7 +48,6 @@ class S3EVRCaseModel(S3Model):
 
         T = current.T
         settings = current.deployment_settings
-        auth = current.auth
 
         define_table = self.define_table
         person_id = self.pr_person_id
@@ -60,10 +59,12 @@ class S3EVRCaseModel(S3Model):
         #
         enable_evr_organisation = settings.get_evr_link_to_organisation()
         organisation_label = settings.get_hrm_organisation_label()
-        if settings.get_org_autocomplete():
-            org_widget = S3OrganisationAutocompleteWidget(default_from_profile=True)
-        else:
-            org_widget = None            
+  
+        org_organisation_represent = self.org_OrganisationRepresent()
+        org_widget = S3HierarchyWidget(lookup="org_organisation",
+                                       represent=org_organisation_represent,
+                                       multiple=False,
+                                       leafonly=False,)        
         
         tablename = "evr_case"
         define_table(tablename,

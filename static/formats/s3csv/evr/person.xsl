@@ -13,6 +13,7 @@
          DOB........................optional..........person date of birth
          Place of Birth.............optional..........person_details place of birth
          Fiscal Code................optional..........evr_case fiscal code
+         Organisation...............optional..........evr_case organisation_id
 
     *********************************************************************** -->
     <xsl:output method="xml"/>
@@ -61,6 +62,7 @@
             <resource name="evr_case">
                 <xsl:if test="col[@field='Fiscal Code']!=''">
                     <data field="fiscal_code"><xsl:value-of select="col[@field='Fiscal Code']"/></data>
+                    <data field="organisation_id"><xsl:value-of select="col[@field='Managing Organisation']"/></data>
                 </xsl:if>
             </resource>
         </resource>
