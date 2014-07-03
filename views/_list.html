@@ -5,6 +5,7 @@
 <div id='component'>
 {{except:}}
 </div>
+<div>
 {{pass}}
 <div id='map'></div>
 <div id='list-btn-add'>
@@ -14,5 +15,6 @@
 {{try:}}{{=items}}
 </div>
 {{except:}}{{pass}}
+</div>
 {{if s3.rfooter:}}<div id='rfooter'>{{=XML(s3.rfooter)}}</div>{{pass}}
 {{include "dataTables.html"}}

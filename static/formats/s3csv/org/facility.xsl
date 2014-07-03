@@ -201,7 +201,6 @@
 
         <xsl:choose>
             <!-- Facility Types -->
-            <!-- @todo: migrate to Taxonomy-pattern, see vulnerability/data.xsl -->
             <xsl:when test="$arg='facility_type_ref'">
                 <resource name="org_site_facility_type">
                     <reference field="facility_type_id" resource="org_facility_type">

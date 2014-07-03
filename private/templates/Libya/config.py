@@ -18,19 +18,12 @@ T = current.T
 s3 = current.response.s3
 settings = current.deployment_settings
 
-datetime_represent = lambda dt: S3DateTime.datetime_represent(dt, utc=True)
-
 """
     Template settings for Requests Management
     - for Libya
 """
 
-# -----------------------------------------------------------------------------
-# Pre-Populate
-settings.base.prepopulate = ["Libya", "demo/users"]
-
-settings.base.system_name = T("Sahana")
-settings.base.system_name_short = T("Sahana")
+datetime_represent = lambda dt: S3DateTime.datetime_represent(dt, utc=True)
 
 # =============================================================================
 # System Settings
@@ -74,6 +67,13 @@ settings.security.map = True
 
 # Owner Entity
 settings.auth.person_realm_human_resource_site_then_org = False
+
+# -----------------------------------------------------------------------------
+# Pre-Populate
+settings.base.prepopulate = ["Libya"]
+
+settings.base.system_name = T("Sahana")
+settings.base.system_name_short = T("Sahana")
 
 # -----------------------------------------------------------------------------
 # Theme (folder to use for views/layout.html)

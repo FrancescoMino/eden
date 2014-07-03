@@ -15,10 +15,14 @@ T = current.T
 
 """
     Template settings for Crisis Portal
+
+    All settings which are to configure a specific template are located here
+
+    Deployers should ideally not need to edit any other files outside of their template folder
 """
 
 # Pre-Populate
-settings.base.prepopulate = ["Crisis", "demo/users"]
+settings.base.prepopulate = ["Crisis"]
 
 # -----------------------------------------------------------------------------
 # Finance settings

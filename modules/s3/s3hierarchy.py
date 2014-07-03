@@ -445,7 +445,15 @@ class S3Hierarchy(object):
                 link = resource.links.get(alias)
                 if link:
                     fkey = rfield.field
-                    self.__left = rfield.left.get(rfield.tname)
+                    
+                    # Construct left join
+                    linktable = link.table
+                    linked = link.linked
+                    query = (linktable[linked.lkey] == table[linked.pkey])
+                    DELETED = current.xml.DELETED
+                    if DELETED in linktable.fields:
+                        query &= (linktable[DELETED] != True)
+                    self.__left = linktable.on(query)
 
         if not fkey:
             # No parent field found

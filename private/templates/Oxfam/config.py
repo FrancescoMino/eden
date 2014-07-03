@@ -18,7 +18,7 @@ settings = current.deployment_settings
 """
 
 # Pre-Populate
-settings.base.prepopulate = ["Oxfam", "demo/users"]
+settings.base.prepopulate = ["Oxfam"]
 
 # L10n settings
 settings.L10n.languages = OrderedDict([

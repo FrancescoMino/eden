@@ -23,19 +23,12 @@ T = current.T
 s3 = current.response.s3
 settings = current.deployment_settings
 
-datetime_represent = lambda dt: S3DateTime.datetime_represent(dt, utc=True)
-
 """
     Template settings for Requests Management
     - for Philippines
 """
 
-# -----------------------------------------------------------------------------
-# Pre-Populate
-settings.base.prepopulate = ["Philippines", "demo/users"]
-
-settings.base.system_name = T("Sahana")
-settings.base.system_name_short = T("Sahana")
+datetime_represent = lambda dt: S3DateTime.datetime_represent(dt, utc=True)
 
 # =============================================================================
 # System Settings
@@ -79,6 +72,13 @@ settings.security.map = True
 
 # Owner Entity
 settings.auth.person_realm_human_resource_site_then_org = False
+
+# -----------------------------------------------------------------------------
+# Pre-Populate
+settings.base.prepopulate = ["Philippines"]
+
+settings.base.system_name = T("Sahana")
+settings.base.system_name_short = T("Sahana")
 
 # -----------------------------------------------------------------------------
 # Theme (folder to use for views/layout.html)
@@ -2404,15 +2404,14 @@ def customise_org_organisation_controller(**attr):
 
                 ntable = s3db.req_organisation_needs
                 s3db.configure("org_organisation",
-                               filter_widgets = filter_widgets
+                               filter_widgets=filter_widgets
                                )
 
             # Represent used in rendering
             current.auth.settings.table_user.organisation_id.represent = s3db.org_organisation_represent
 
             # Hide fields
-            field = s3db.org_organisation_organisation_type.organisation_type_id
-            field.readable = field.writable = False
+            table.organisation_type_id.readable = table.organisation_type_id.writable = False
             table.region_id.readable = table.region_id.writable = False
             table.country.readable = table.country.writable = False
             table.year.readable = table.year.writable = False

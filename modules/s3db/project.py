@@ -3195,7 +3195,7 @@ class S3ProjectSectorModel(S3Model):
 
         # CRUD Strings
         current.response.s3.crud_strings[tablename] = Storage(
-            label_create = T("Add Sector"),
+            label_create = T("New Sector"),
             title_display = T("Sector"),
             title_list = T("Sectors"),
             title_update = T("Edit Sector"),
@@ -3382,7 +3382,7 @@ class S3ProjectThemeModel(S3Model):
                      *s3_meta_fields())
 
         crud_strings[tablename] = Storage(
-            label_create = T("Add Sector"),
+            label_create = T("New Sector"),
             title_display = T("Sector"),
             title_list = T("Sectors"),
             title_update = T("Edit Sector"),
@@ -6540,8 +6540,7 @@ def project_task_list_layout(list_id, item_id, resource, rfields, record,
     if source_url:
         source_btn =  A(I(" ", _class="icon icon-link"),
                        _title=source_url,
-                       _href=source_url,
-                       _target="_blank"
+                       _href=source_url
                        )
     else:
         source_btn = ""

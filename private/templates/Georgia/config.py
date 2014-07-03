@@ -14,11 +14,15 @@ settings = current.deployment_settings
 T = current.T
 
 """
-    Template settings for Georgia, US
+    Template settings for US
+
+    All settings which are to configure a specific template are located here
+
+    Deployers should ideally not need to edit any other files outside of their template folder
 """
 
 # Pre-Populate
-settings.base.prepopulate = ["Georgia", "demo/users"]
+settings.base.prepopulate = ["Georgia"]
 
 # Uncomment to Hide the language toolbar
 settings.L10n.display_toolbar = False

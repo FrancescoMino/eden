@@ -746,18 +746,18 @@ class organisations():
                 s3.scripts.append("/%s/static/scripts/S3/s3.dataTables.multi.min.js" % request.application)
 
             s3.js_global.append('''S3.dataTablesInstances=[]''')
-            s3request, list_fields = self._regional()
-            tables.append(self._table("regional", s3request.resource, list_fields))
-            s3request, list_fields = self._groups()
-            tables.append(self._table("groups", s3request.resource, list_fields))
+            s3request, field_list = self._regional()
+            tables.append(self._table("regional", s3request.resource, field_list))
+            s3request, field_list = self._groups()
+            tables.append(self._table("groups", s3request.resource, field_list))
         else:
             # AJAX call
             if table == "groups":
-                s3request, list_fields = self._groups()
+                s3request, field_list = self._groups()
             elif table == "regional":
-                s3request, list_fields = self._regional()
+                s3request, field_list = self._regional()
             current.s3db.configure(s3request.resource.tablename,
-                                   list_fields = list_fields)
+                                   list_fields = field_list)
             return s3request()
 
         return dict(tables=tables)
@@ -774,21 +774,22 @@ class organisations():
 
         s3request = s3_request("org", "organisation", extension="aadata")
         # (FS("project.id") != None) & \
-        f = (FS("organisation_type.name").anyof(["Regional Organisation",
-                                                 "Regional Office",
-                                                 "Regional Center"]))
+        f = (FS("organisation_type_id$name").anyof(["Regional Organisation",
+                                                                 "Regional Office",
+                                                                 "Regional Center"]))
         s3request.resource.add_filter(f)
 
-        list_fields = ["id",
-                       "name",
-                       "acronym",
-                       (T("Type"), "organisation_organisation_type.organisation_type_id"),
-                       "website",
-                       "region_id",
-                       "year",
-                       (T("Notes"), "comments"),
-                       ]
-        return (s3request, list_fields)
+        field_list = [
+            "id",
+            "name",
+            "acronym",
+            (T("Type"), "organisation_type_id"),
+            "website",
+            "region_id",
+            "year",
+            (T("Notes"), "comments"),
+        ]
+        return (s3request, field_list)
 
     # -------------------------------------------------------------------------
     @staticmethod
@@ -807,19 +808,19 @@ class organisations():
 
         s3request = s3_request("org", "organisation", extension="aadata")
         #(FS("project.id") != None) & \
-        f = (FS("organisation_type.name").anyof(["Committees/Mechanism/Forum",
-                                                 "Network"]))
+        f = (FS("organisation_type_id$name").anyof(["Committees/Mechanism/Forum",
+                                                                 "Network"]))
         s3request.resource.add_filter(f)
 
-        list_fields = ["id",
-                       "name",
-                       "acronym",
-                       (T("Type"), "organisation_organisation_type.organisation_type_id"),
-                       "year",
-                       (T("Address"), "address"),
-                       (T("Notes"), "comments"),
-                       ]
-        return (s3request, list_fields)
+        field_list = ["id",
+                      "name",
+                      "acronym",
+                      (T("Type"), "organisation_type_id"),
+                      "year",
+                      (T("Address"), "address"),
+                      (T("Notes"), "comments"),
+                      ]
+        return (s3request, field_list)
 
     # -------------------------------------------------------------------------
     @staticmethod

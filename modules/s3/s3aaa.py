@@ -290,9 +290,6 @@ Thank you"""
                       default=""),
                 Field("email", length=255, unique=True,
                       default=""),
-                # Used For chat in default deployment config
-                Field("username", length=255, default="",
-                      readable=False, writable=False),
                 Field("language", length=16,
                       default = deployment_settings.get_L10n_default_language()),
                 Field("utc_offset", length=16,
@@ -594,6 +591,8 @@ Thank you"""
             if buttons:
                 submit_button = INPUT(_type="submit", _value=T("Login"))
                 buttons.insert(0, submit_button)
+            else:
+                buttons = None
             
             form = SQLFORM(utable,
                            fields = [userfield, passfield],
@@ -1520,7 +1519,6 @@ Thank you"""
                         formname="profile",
                         onvalidation=onvalidation,
                         hideerror=settings.hideerror):
-            self.auth_user_onaccept(form.vars.email, self.user.id)
             self.user.update(utable._filter_fields(form.vars))
             session.flash = messages.profile_updated
             if log:
@@ -1997,13 +1995,6 @@ S3OptionsFilter({
         s3.jquery_ready.append('''s3_register_validation()''')
 
     # -------------------------------------------------------------------------
-    def auth_user_onaccept(self, email, user_id):
-        db = current.db
-        if self.settings.login_userfield != "username":
-            chat_username = email.replace("@", "_")
-            db(db.auth_user.id == user_id).update(username = chat_username)
-
-    # -------------------------------------------------------------------------
     def s3_user_register_onaccept(self, form):
         """
             S3 framework function
@@ -2267,8 +2258,6 @@ S3OptionsFilter({
 
         if current.response.s3.bulk is True:
             # Non-interactive imports should stop here
-            user_email = db(utable.id == user_id).select(utable.email).first().email
-            self.auth_user_onaccept(user_email, user_id)
             return
 
         # Allow them to login
@@ -2278,9 +2267,7 @@ S3OptionsFilter({
         if user.organisation_id and \
            "org_organisation" in deployment_settings.get_auth_record_approval_required_for():
             s3db.resource("org_organisation", user.organisation_id, unapproved=True).approve()
-        
-        user_email = db(utable.id == user_id).select(utable.email).first().email
-        self.auth_user_onaccept(user_email, user_id)
+
         # Send Welcome mail
         self.s3_send_welcome_email(user)
 

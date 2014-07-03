@@ -261,7 +261,6 @@
                 "OpenLayers/Geometry/Polygon.js",
                 "OpenLayers/Geometry/MultiLineString.js",
                 "OpenLayers/Geometry/MultiPolygon.js",
-                "OpenLayers/Geometry/GeodesicPolygon.js",
                 "OpenLayers/Renderer.js",
                 "OpenLayers/Renderer/Elements.js",
                 "OpenLayers/Renderer/SVG.js",

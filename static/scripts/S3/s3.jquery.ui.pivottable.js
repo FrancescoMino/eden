@@ -41,9 +41,7 @@
 
             autoSubmit: 1000,
             thousandSeparator: ' ',
-            thousandGrouping: '3',
-            minTickSize: null,
-            precision: null
+            thousandGrouping: '3'
         },
 
         _create: function() {
@@ -59,8 +57,7 @@
         _init: function() {
             // Update widget options
             
-            var $el = $(this.element),
-                opts = this.options;
+            var $el = $(this.element);
 
             this.data = null;
             this.table = null;
@@ -83,22 +80,22 @@
             }
 
             // Hide the form or parts of it?
-            if (!opts.renderFilter && !opts.renderOptions) {
+            if (!this.options.renderFilter && !this.options.renderOptions) {
                 $el.find('.pt-form-container').hide();
             } else {
                 var widget_id = $el.attr('id');
-                if (opts.renderOptions) {
+                if (this.options.renderOptions) {
                     $('#' + widget_id + '-options').show();
-                    if (opts.collapseOptions) {
+                    if (this.options.collapseOptions) {
                         $('#' + widget_id + '-options legend').siblings().toggle();
                         $('#' + widget_id + '-options legend').children().toggle();
                     }
                 } else {
                     $('#' + widget_id + '-options').hide();
                 }
-                if (opts.renderFilter) {
+                if (this.options.renderFilter) {
                     $('#' + widget_id + '-filters').show();
-                    if (opts.collapseFilter) {
+                    if (this.options.collapseFilter) {
                         $('#' + widget_id + '-filters legend').siblings().toggle();
                         $('#' + widget_id + '-filters legend').children().toggle();
                     }
@@ -108,25 +105,18 @@
             }
 
             // Hide the pivot table?
-            if (opts.collapseTable) {
+            if (this.options.collapseTable) {
                 this.table_options.hidden = true;
                 $el.find('.pt-table').hide();
                 $el.find('.pt-show-table').show();
                 $el.find('.pt-hide-table').hide();
             }
 
-            // Define number formatter
-            opts.numberFormatter = function(number) {
-
-                var decimals = opts.precision;
-                var n = decimals || decimals == 0 ? number.toFixed(decimals) : number.toString();
-                
-                n = n.split('.');
-                var n1 = n[0],
-                    n2 = n.length > 1 ? '.' + n[1] : '';
-                var re = new RegExp('\\B(?=(\\d{' + opts.thousandGrouping + '})+(?!\\d))', 'g');
-                n1 = n1.replace(re, opts.thousandSeparator);
-                return n1 + n2;
+            // Define thousandFormatter function
+            var re = new RegExp('\\B(?=(\\d{' + this.options.thousandGrouping + '})+(?!\\d))','g');
+            var thousandSeparator = this.options.thousandSeparator;
+            this.options.thousandFormatter = function(number) {
+                return number.toString().replace(re, thousandSeparator);
             };
 
             // Render all initial contents
@@ -154,16 +144,11 @@
             if (pivotdata.length) {
                 data = JSON.parse($(pivotdata).first().val());
             }
-
             if (!data) {
                 data = {empty: true};
                 // Show the empty section
                 $el.find('.pt-hide-table').hide();
                 $el.find('.pt-show-table').hide();
-            } else if (data.method == 'count') {
-                // Charts should show integers if method is 'count'
-                this.options.precision = 0;
-                this.options.minTickSize = 1;
             }
             this.data = data;
 
@@ -175,6 +160,7 @@
                 $el.find('.pt-hide-table').hide();
                 $el.find('.pt-show-table').hide();
                 this._renderChart();
+
             } else {
                 this._renderTable();
                 this._renderChartOptions();
@@ -554,7 +540,6 @@
                 var item = data[i];
                 if (!item[1]) {
                     items.push({
-                        index: item[0],
                         label: item[4],
                         data: item[2],
                         key: item[3]
@@ -614,10 +599,8 @@
                 if (selector) {
                     $(chart).bind('plotclick', function(event, pos, item) {
                         if (item) {
-                            var data = items[item.seriesIndex];
                             try {
-                                var fvar = data.index == '__other__' ? selector + '__belongs' : selector;
-                                var filter = [[fvar, data.key]];
+                                var filter = [[selector, items[item.seriesIndex]['key']]];
                             }
                             catch(e) {
                                 return;
@@ -645,7 +628,6 @@
                 var item = data[i];
                 if (!item[1]) {
                     items.push({
-                        index: item[0],
                         label: item[4],
                         data: [[idx+1, item[2]]],
                         key: item[3]
@@ -687,10 +669,7 @@
                         // Rotate labels with jquery.flot.tickrotor.js:
                         // rotateTicks: 135
                     },
-                    yaxis: {
-                        tickFormatter: this.options.numberFormatter,
-                        minTickSize: this.options.minTickSize
-                    }
+                   yaxis: { tickFormatter: this.options.thousandFormatter }
                 }
             );
             // jquery.flot.tickrotor.js doesn't hide the original labels:
@@ -723,10 +702,8 @@
                 if (selector) {
                     $(chart).bind('plotclick', function(event, pos, item) {
                         if (item) {
-                            var data = items[item.seriesIndex];
                             try {
-                                var fvar = data.index == '__other__' ? selector + '__belongs' : selector;
-                                var filter = [[fvar, data.key]];
+                                var filter = [[selector, items[item.seriesIndex]['key']]];
                             }
                             catch(e) {
                                 return;
@@ -838,8 +815,7 @@
                     },
                     xaxis: {
                         max: xmax * 1.1,
-                        tickFormatter: this.options.numberFormatter,
-                        minTickSize: this.options.minTickSize
+                        tickFormatter: this.options.thousandFormatter
                     },
                     grid: {
                         hoverable: true,
@@ -888,10 +864,8 @@
                     $(chart).bind('plotclick', function(event, pos, item) {
                         if (item) {
                             try {
-                                var row_data = rows[item.dataIndex][3],
-                                    col_data = cols[item.seriesIndex][3];
-                                var filter = [[rows_selector, row_data ? row_data : 'None'],
-                                              [cols_selector, col_data ? col_data : 'None']];
+                                var filter = [[rows_selector, rows[item.dataIndex][3]],
+                                              [cols_selector, cols[item.seriesIndex][3]]];
                             }
                             catch(e) {
                                 return;

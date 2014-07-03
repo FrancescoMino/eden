@@ -553,9 +553,6 @@ class S3OptionsMenu(object):
                     M("Templates", f="template")(
                         M("Create", m="create"),
                     ),
-                    M("RSS Channels", c="msg", f="rss_channel")(
-                        M("Create", m="create"),
-                    ),
                     #M("CAP Profile", f="profile")(
                     #    M("Edit profile", f="profile")
                     #)
@@ -1488,6 +1485,7 @@ class S3OptionsMenu(object):
                  ),
                  M("Partner Organizations",  f="partners")(
                     M("Create", m="create"),
+                    #M("Search"),
                     M("Import", m="import", p="create"),
                  ),
                  M("Activity Types", f="activity_type",

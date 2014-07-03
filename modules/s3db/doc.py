@@ -132,10 +132,6 @@ class S3DocumentLibrary(S3Model):
                            represent = lambda file, tn=tablename: \
                                        self.doc_file_represent(file, tn),
                            ),
-                     Field("mime_type",
-                           readable=False,
-                           writable=False,
-                           ),
                      Field("name", length=128,
                            # Allow Name to be added onvalidation
                            requires = IS_EMPTY_OR(IS_LENGTH(128)),
@@ -261,10 +257,6 @@ class S3DocumentLibrary(S3Model):
                                                        "uploads",
                                                        "images"),
                            widget=S3ImageCropWidget((300, 300))),
-                     Field("mime_type",
-                           readable=False,
-                           writable=False,
-                           ),
                      Field("name", length=128,
                            # Allow Name to be added onvalidation
                            requires = IS_EMPTY_OR(IS_LENGTH(128)),

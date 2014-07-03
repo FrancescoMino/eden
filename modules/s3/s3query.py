@@ -516,17 +516,8 @@ class S3FieldPath(object):
 
         components = resource.components
         links = resource.links
-        linked = resource.linked
 
-        if linked and linked.alias == alias:
-
-            # It's the linked table
-            linktable = resource.table
-
-            ktable = linked.table
-            join = [ktable.on(ktable[linked.fkey] == linktable[linked.rkey])]
-
-        elif alias in components:
+        if alias in components:
 
             # Is a component
             component = components[alias]
@@ -1162,7 +1153,7 @@ class S3ResourceQuery(object):
                 if distinct and left or not distinct and not left:
                     joins = rfield._joins
 
-        return (joins, distinct)
+        return(joins, distinct)
         
     # -------------------------------------------------------------------------
     def fields(self):

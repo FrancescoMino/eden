@@ -39,16 +39,6 @@
     padding: 1em;
 }
 
-.navbar .nav > li > a.home {
-    padding: 8px 5px;
-    height: 100%;
-}
-
-.navbar .nav > li > a.home > img {
-    width: 29px;
-    height: 30px;
-}
-
 ul.nav li.dropdown:hover > ul.dropdown-menu{
     display: block;    
 }
@@ -65,7 +55,10 @@ i.icon-cog {
 }
 
 .navbar .nav > li > a  {
-    border-left: 1px solid #245886;
+    border-left: 1px solid #245886
+}
+
+.navbar .nav > li > a {
     color: #fff;
     text-shadow: none;
     height: 20px;
@@ -129,11 +122,6 @@ button.btn.btn-navbar {
 
 button.btn.btn-navbar:hover {
     background-color: #484845;
-}
-
-.dropdown-menu > li > a:active > [class^="icon-"],
-.dropdown-menu > li > a:active > [class*=" icon-"] { 
-    background-image: none;
 }
 
 @media (min-width: 768px) and (max-width: 979px) {

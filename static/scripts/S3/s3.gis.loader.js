@@ -188,7 +188,6 @@ var s3_gis_loadjs = function(debug, projection, callback, scripts) {
             'gis/openlayers/lib/OpenLayers/Geometry/Polygon.js',
             'gis/openlayers/lib/OpenLayers/Geometry/MultiLineString.js',
             'gis/openlayers/lib/OpenLayers/Geometry/MultiPolygon.js',
-            'gis/openlayers/lib/OpenLayers/Geometry/GeodesicPolygon.js',
             'gis/openlayers/lib/OpenLayers/Renderer.js',
             'gis/openlayers/lib/OpenLayers/Renderer/Elements.js',
             'gis/openlayers/lib/OpenLayers/Renderer/SVG.js',

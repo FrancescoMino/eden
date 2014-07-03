@@ -17,25 +17,18 @@ from s3.s3query import FS
 from s3.s3utils import S3DateTime, s3_auth_user_represent_name, s3_avatar_represent
 from s3.s3validators import IS_LOCATION_SELECTOR2, IS_ONE_OF
 from s3.s3widgets import S3LocationSelectorWidget2
-from s3.s3forms import S3SQLCustomForm, S3SQLInlineLink, S3SQLInlineComponent, S3SQLInlineComponentMultiSelectWidget
+from s3.s3forms import S3SQLCustomForm, S3SQLInlineComponent, S3SQLInlineComponentMultiSelectWidget
 
 T = current.T
 s3 = current.response.s3
 settings = current.deployment_settings
-
-datetime_represent = lambda dt: S3DateTime.datetime_represent(dt, utc=True)
 
 """
     Template settings for Requests Management
     - for Philippines
 """
 
-# -----------------------------------------------------------------------------
-# Pre-Populate
-settings.base.prepopulate = ["Yolanda", "demo/users"]
-
-settings.base.system_name = T("Sahana")
-settings.base.system_name_short = T("Sahana")
+datetime_represent = lambda dt: S3DateTime.datetime_represent(dt, utc=True)
 
 # =============================================================================
 # System Settings
@@ -79,6 +72,13 @@ settings.security.map = True
 
 # Owner Entity
 settings.auth.person_realm_human_resource_site_then_org = False
+
+# -----------------------------------------------------------------------------
+# Pre-Populate
+settings.base.prepopulate = ["Yolanda"]
+
+settings.base.system_name = T("Sahana")
+settings.base.system_name_short = T("Sahana")
 
 # -----------------------------------------------------------------------------
 # Theme (folder to use for views/layout.html)
@@ -2366,7 +2366,7 @@ def customise_org_organisation_controller(**attr):
                                                 "comments",
                                                 ],
                                               label = T("Search")),
-                                  S3OptionsFilter("organisation_organisation_type.organisation_type_id",
+                                  S3OptionsFilter("organisation_type_id",
                                                   label = T("Type"),
                                                   ),
                                   ]
@@ -2389,13 +2389,7 @@ def customise_org_organisation_controller(**attr):
 
             s3_sql_custom_fields = ["id",
                                     "name",
-                                    S3SQLInlineLink(
-                                        "organisation_type",
-                                        field = "organisation_type_id",
-                                        label = T("Type"),
-                                        multiple = False,
-                                        #widget = "hierarchy",
-                                    ),
+                                    "organisation_type_id",
                                     "country",
                                      S3SQLInlineComponentMultiSelectWidget(
                                          "sector",
@@ -3249,7 +3243,7 @@ def customise_project_activity_controller(**attr):
                           S3OptionsFilter("activity_organisation.organisation_id",
                                           represent = "%(name)s",
                                           ),
-                          S3OptionsFilter("activity_organisation.organisation_id$organisation_organisation_type.organisation_type_id",
+                          S3OptionsFilter("activity_organisation.organisation_id$organisation_type_id",
                                           # Doesn't support translation
                                           #represent = "%(name)s",
                                           ),

@@ -71,7 +71,8 @@ h2 i {
 }
 
 #org_facility_organisation_id__row .help-block div{
-    margin-bottom: -16px;
+    top: 0;
+    margin-bottom: 12px;
 }
 
 /* Main Map */
@@ -92,37 +93,19 @@ h2 i {
 }
 
 /* Summary Page */
-h2 {
+h2.summary {
     float: left;
-    margin-right: 15px;
+}
+
+#summary-common { 
+    margin-top: 10px;
 }
 
 #list-btn-add {
-    margin-top: 15px;
+    /* background: linear-gradient(to bottom, #3788B3 0%, #235482 100%) repeat scroll 0 0 transparent;*/
+    margin: 0 0 0 10px;
+    padding: 4px 6px;
     float: left;
-}
-
-#show-add-btn {
-    margin-bottom: 10px;
-}
-
-#list-add h3 {
-    padding: 7px 15px;
-    text-align: left;
-}
-
-#map {
-    float:left;
-}
-
-#list-add,
-#filter-form,
-#table-container,
-.form-container {
-    clear: both;
-}
-
-#summary-common {
     /* Push above alert-space & Summary Tabs */
     position: relative;
     z-index: 1001;
@@ -136,9 +119,8 @@ h2 {
 }
 
 .cms-edit {
-    float: right;
-    margin-top: -25px;
-}
+    /* Push above Summary Tabs */
+    z-index: 1001;
 }
 
 .ui-tabs {
@@ -227,6 +209,19 @@ select {
     display: none;
 }
 
+/* Hide the colons for Location Selectors before JS can hide */
+.form-container #org_facility_location_id__label,
+.form-container #project_activity_location_id__label,
+.form-container #stats_people_location_id__label,
+.form-container #vulnerability_evac_route_location_id__label,
+.form-container #vulnerability_risk_location_id__label {
+    display: none;
+}
+/* But show in Map Popups */
+#plain #org_facility_location_id__label {
+    display: block;
+}
+
 [id$=map_icon__row] div.controls{
     float: left;
 }
@@ -311,19 +306,11 @@ button.ui-multiselect.ui-state-default.ui-corner-all:hover {
     *background: #d9d9d9;
 }
 
-/* Filter Form */
-#filter-form-title {
-    margin: 0 0 0 7px;
-    padding: 0 3px;
-    font-size: 16px;
-    display: inline-block;
-    z-index: 1;
-    position: relative;
-    background-color: white;
-    border-radius: 5px;
-    float: left;
+button.ui-multiselect.ui-state-default.ui-corner-all {
+    margin-bottom: 10px;
 }
 
+/* Filter Form */
 form.filter-form,
 form#summary-filter-form {
     float: left;
@@ -367,6 +354,12 @@ form#summary-filter-form {
     color: #0088CC;
 }
 
+/* Contacts Page */
+.form-container #pr_person_sub_human_resourcehuman_resource__label {
+    /* Hide the colon */
+    display: none;
+}
+
 /* Adjust Field Widths to match Titles/Data */
 #sub_defaultactivity_organisation_defaultactivity_organisation_i_organisation_id_edit_none,
 #sub_defaultactivity_organisation_defaultactivity_organisation_i_organisation_id_edit_0 {
@@ -389,34 +382,20 @@ form#summary-filter-form {
     width: 240px;
 }
 
-/* Organisations */
-#org_organisation_sub_defaultfacility__label {
-    width: 0;
-}
-#sub-defaultfacility {
-    margin-left: -170px;
-}
-
-#sub-filedocument {
-    float: left;
-}
-
-#project_activity_sub_filedocument__row .tooltip {
-    margin-top: -3px; 
-}
+/* Organisations/Places Forms
+#sub_defaulthuman_resource_defaulthuman_resource_i_person_id_edit_none,
+#sub_defaulthuman_resource_defaulthuman_resource_i_site_id_edit_none,
+#sub_defaultresource_defaultresource_i_value_edit_none {
+    margin-top: -20px;
+} */
 
 #sub_defaultresource_defaultresource_i_value_edit_none {
     width: 50px;
 }
 
-
-#sub_defaultsite_org_group_defaultsite_org_group_i_status_edit_none {
-    width: 270px;
-}
-
 /* Map */
 .map_home {
-    margin: 0;
+    margin: -14px 0 0;
 }
 
 .map_save_button,
@@ -437,7 +416,7 @@ form#summary-filter-form {
 }
 
 .map_save_panel {
-    margin-top: 10px;
+    margin: 0;
 }
 
 /* Report */

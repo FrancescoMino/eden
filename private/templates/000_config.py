@@ -141,10 +141,7 @@ settings.frontpage.rss = [
 #settings.base.google_analytics_tracking_id = ""
 
 # Chat server, see: http://eden.sahanafoundation.org/wiki/InstallationGuidelines/Chat
-#settings.base.chat_server = { "ip": "127.0.0.1",
-#        "port": 7070,
-#        "name": "servername"
-#        } 
+#settings.base.chat_server = "127.0.0.1:7070" 
 
 # FaceBook OAuth (to allow users to login using FaceBook)
 # https://developers.facebook.com/apps

@@ -695,7 +695,7 @@ class S3HRModel(S3Model):
                          "person_id",
                          "person_id$gender",
                          "job_title_id",
-                         (T("Training"), "training.course_id"),
+                         (T("Training"), "person_id$training.course_id"),
                          "location_id$L1",
                          "location_id$L2",
                          ]
@@ -769,9 +769,9 @@ class S3HRModel(S3Model):
                     fact = report_fields,
                     methods = ["count", "list"],
                     defaults = Storage(
-                        rows = "organisation_id",
-                        cols = "training.course_id",
-                        fact = "person_id",
+                        rows = "human_resource.organisation_id",
+                        cols = "human_resource.person_id$training.course_id",
+                        fact = "human_resource.person_id",
                         aggregate = "count")
                     ),
                   # Default summary
@@ -846,9 +846,7 @@ class S3HRModel(S3Model):
                                 readable = False,
                                 writable = False)
 
-        return dict(hrm_department_id = lambda **attr: dummy("department_id"),
-                    hrm_job_title_id = lambda **attr: dummy("job_title_id"),
-                    hrm_human_resource_id = lambda **attr: dummy("human_resource_id"),
+        return dict(hrm_human_resource_id = lambda **attr: dummy("human_resource_id"),
                     )
 
     # -------------------------------------------------------------------------
@@ -5391,13 +5389,6 @@ def hrm_human_resource_controller(extra_filter=None):
                                # Default renderer:
                                #list_layout = s3db.doc_document_list_layout,
                                )
-            education_widget = dict(label = "Education",
-                                    label_create = "Add Education",
-                                    type = "datalist",
-                                    tablename = "pr_education",
-                                    filter = FS("person_id") == person_id,
-                                    icon = "icon-book",
-                                    )
             profile_widgets = [contacts_widget,
                                address_widget,
                                skills_widget,
@@ -5408,8 +5399,6 @@ def hrm_human_resource_controller(extra_filter=None):
                                
             if deploy:
                 profile_widgets.insert(2, credentials_widget)
-                if settings.get_hrm_use_education():
-                    profile_widgets.insert(-1, education_widget)
 
             # Configure resource
             s3db.configure("hrm_human_resource",

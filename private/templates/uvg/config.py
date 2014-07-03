@@ -14,12 +14,12 @@ T = current.T
 settings = current.deployment_settings
 
 """
-    Template settings for UVG
-"""
+    Template settings
 
-# -----------------------------------------------------------------------------
-# Pre-Populate
-settings.base.prepopulate = ["uvg", "users"]
+    All settings which are to configure a specific template are located here
+
+    Deployers should ideally not need to edit any other files outside of their template folder
+"""
 
 # Theme (folder to use for views/layout.html)
 settings.base.theme = "uvg"

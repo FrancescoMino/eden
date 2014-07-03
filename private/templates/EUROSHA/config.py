@@ -18,7 +18,7 @@ T = current.T
 """
 
 # Pre-Populate
-settings.base.prepopulate = ["EUROSHA", "demo/users"]
+settings.base.prepopulate = ["EUROSHA"]
 
 settings.base.system_name = T("EUROSHA Humanitarian Data Registry")
 settings.base.system_name_short = T("EUROSHA")
@@ -83,8 +83,6 @@ settings.security.map = True
 def eurosha_realm_entity(table, row):
     """
         Assign a Realm Entity to records
-
-        NB EUROSHA should never use User Organisation (since volunteers editing on behalf of other Orgs)
     """
 
     tablename = table._tablename
@@ -172,8 +170,30 @@ def eurosha_realm_entity(table, row):
             # Continue to loop through the rest of the default_fks
             # Fall back to default get_realm_entity function
 
-    return realm_entity
+    # EUROSHA should never use User organsiation (since volunteers editing on behalf of other Orgs)
+    #use_user_organisation = False
+    ## Suppliers & Partners are owned by the user's organisation
+    #if realm_entity == 0 and tablename == "org_organisation":
+    #    ott = s3db.org_organisation_type
+    #    row = table[row.id]
+    #    row = db(table.organisation_type_id == ott.id).select(ott.name,
+    #                                                          limitby=(0, 1)
+    #                                                          ).first()
+    #    
+    #    if row and row.name != "Red Cross / Red Crescent":
+    #        use_user_organisation = True
 
+    ## Groups are owned by the user's organisation
+    #elif tablename in ["pr_group"]:
+    #    use_user_organisation = True
+
+    #user = current.auth.user
+    #if use_user_organisation and user:
+    #    # @ToDo - this might cause issues if the user's org is different from the realm that gave them permissions to create the Org 
+    #    realm_entity = s3db.pr_get_pe_id("org_organisation",
+    #                                     user.organisation_id)
+
+    return realm_entity
 settings.auth.realm_entity = eurosha_realm_entity
 
 # Set this if there will be multiple areas in which work is being done,
@@ -262,7 +282,7 @@ def customise_org_organisation_controller(**attr):
             list_fields = ["id",
                            "name",
                            "acronym",
-                           "organisation_organisation_type.organisation_type_id",
+                           "organisation_type_id",
                            (T("Clusters"), "sector.name"),
                            "country",
                            "website"
@@ -275,13 +295,7 @@ def customise_org_organisation_controller(**attr):
             crud_form = S3SQLCustomForm(
                 "name",
                 "acronym",
-                S3SQLInlineLink(
-                    "organisation_type",
-                    field = "organisation_type_id",
-                    label = T("Type"),
-                    multiple = False,
-                    #widget = "hierarchy",
-                ),
+                "organisation_type_id",
                 "region_id",
                 "country",
                 S3SQLInlineComponentCheckbox(

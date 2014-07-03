@@ -22,7 +22,12 @@ settings = current.deployment_settings
 """
 
 # Pre-Populate
-settings.base.prepopulate = ["EVASS", "demo/users"]
+# http://eden.sahanafoundation.org/wiki/DeveloperGuidelines/PrePopulate
+# Configure/disable pre-population of the database.
+# To pre-populate the database On 1st run should specify directory(s) in
+# /private/templates/
+
+settings.base.prepopulate = ["EVASS"]
 
 settings.base.system_name = T("EVASS - Sahana Eden for Italy")
 settings.base.system_name_short = T("Sahana Eden for Italy")
@@ -337,7 +342,7 @@ settings.cr.shelter_housing_unit_management = True
 # Make Event Types Hierarchical
 #settings.event.types_hierarchical = True
 
-# -----------------------------------------------------------------------------
+
 # Evacuees
 # Group Types
 #settings.evr.group_types = {1: T("other"),
@@ -354,10 +359,10 @@ settings.cr.shelter_housing_unit_management = True
 settings.evr.physical_description = False
 # Uncomment to hide Emergency Contacts in Person Contacts page
 settings.pr.show_emergency_contacts = False
-# Uncomment to link evacuees to Organisations
-settings.evr.link_to_organisation= True
 # -----------------------------------------------------------------------------
 # Organisations
+# Uncomment to use an Autocomplete for Organisation lookup fields
+#settings.org.autocomplete = True
 # Enable the use of Organisation Branches
 settings.org.branches = True
 # Make Facility Types Hierarchical
@@ -368,7 +373,7 @@ settings.org.branches = True
 # Enable the use of Organisation Regions
 #settings.org.regions = True
 # Make Organisation Regions Hierarchical
-#settings.org.regions_hierarchical = True
+settings.org.regions_hierarchical = True
 # Make Services Hierarchical
 #settings.org.services_hierarchical = True
 # Set the length of the auto-generated org/site code the default is 10
@@ -399,8 +404,7 @@ settings.org.branches = True
 #     "vol_volunteer_cluster.vol_cluster_id"          : [],
 #     "vol_volunteer_cluster.vol_cluster_position_id" : [],
 #     }
-# Theme for the S3HierarchyWidget (folder in static/styles/jstree or relative to application)
-settings.ui.hierarchy_theme = "default"
+
 # -----------------------------------------------------------------------------
 # Human Resource Management
 # Uncomment to change the label for 'Staff'
@@ -566,8 +570,7 @@ def customise_pr_person_resource(r, tablename):
 settings.customise_pr_person_resource = customise_pr_person_resource
 
 def customise_pr_group_resource(r, tablename):
-    
-    messages = current.messages
+
     field = r.table.group_type
     pr_group_types = {1 : T("Family"),
                       2 : T("Tourist Group"),

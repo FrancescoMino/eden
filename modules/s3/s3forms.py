@@ -45,6 +45,7 @@ except:
     from gluon.contrib.simplejson.ordered_dict import OrderedDict
 
 from gluon import *
+from gluon.languages import lazyT
 from gluon.storage import Storage
 from gluon.sqlhtml import StringWidget
 from gluon.tools import callback
@@ -340,16 +341,14 @@ class S3SQLDefaultForm(S3SQLForm):
         # Cancel button
         if not readonly and s3.cancel:
             T = current.T
-            if not settings.custom_submit:
-                if settings.submit_button:
-                    submit_label = T(settings.submit_button)
-                else:
-                    submit_label = T("Save")
-                submit_button = INPUT(_type="submit",
-                                    _value=submit_label)
-                if settings.submit_style:
-                    submit_button.add_class(settings.submit_style)
-                buttons = [submit_button]
+            if settings.submit_button:
+                submit_label = T(settings.submit_button)
+            else:
+                submit_label = T("Save")
+            submit_button = INPUT(_type="submit",
+                                  _value=submit_label)
+            if settings.submit_style:
+                submit_button.add_class(settings.submit_style)
 
             cancel = s3.cancel
             cancel_button = A(T("Cancel"), _class="cancel-form-btn action-lnk")
@@ -364,7 +363,7 @@ class S3SQLDefaultForm(S3SQLForm):
                 s3.jquery_ready.append(script % cancel)
             else:
                 cancel_button.update(_href=s3.cancel)
-            buttons.append(cancel_button)
+            buttons = [submit_button, cancel_button]
 
         # Generate the form
         if record is None:
@@ -845,10 +844,8 @@ class S3SQLCustomForm(S3SQLForm):
                     if f.required:
                         flabels = s3_mark_required([f], mark_required=[f])[0]
                         labels[f.name] = flabels[f.name]
-                    elif f.label:
-                        labels[f.name] = "%s:" % f.label
                     else:
-                        labels[f.name] = ""
+                        labels[f.name] = "%s:" % f.label
 
         if readonly:
             # Strip all comments
@@ -1620,12 +1617,12 @@ class S3SQLInlineComponent(S3SQLSubForm):
         fname = self._formname(separator = "_")
         field = Field(fname, "text",
                       comment = options.get("comment", None),
-                      default = self.extract(resource, None),
                       label = label,
-                      represent = self.represent,
-                      required = options.get("required", False),
-                      requires = self.parse,
                       widget = self,
+                      default = self.extract(resource, None),
+                      represent = self.represent,
+                      requires = self.parse,
+                      required = options.get("required", False),
                       )
 
         return (self, None, field)
@@ -2746,7 +2743,7 @@ class S3SQLInlineLink(S3SQLInlineComponent):
 
             @param resource: the resource the record belongs to
             @param record_id: the record ID
-
+            
             @return: list of component record IDs this record is
                      linked to via the link table
         """
@@ -2754,34 +2751,28 @@ class S3SQLInlineLink(S3SQLInlineComponent):
         self.resource = resource
         component, link = self.get_link()
 
+        values = []
         if record_id:
             rkey = component.rkey
             rows = link.select([rkey], as_rows=True)
             if rows:
                 rkey = str(link.table[rkey])
                 values = [row[rkey] for row in rows]
-            else:
-                values = []
-        else:
-            # Use default
-            values = [link.table[self.options.field].default]
-
         return values
 
     # -------------------------------------------------------------------------
     def __call__(self, field, value, **attributes):
         """
-            Widget renderer, currently supports multiselect (default), hierarchy
-            and groupedopts widgets.
+            Widget renderer, currently supports groupedopts (default) and
+            multiselect widgets (hierarchy planned).
 
             @param field: the input field
             @param value: the value to populate the widget
             @param attributes: attributes for the widget
-
+            
             @return: the widget
         """
 
-        options = self.options
         component, link = self.get_link()
 
         # Field dummy
@@ -2789,6 +2780,7 @@ class S3SQLInlineLink(S3SQLInlineComponent):
                               type = link.table[component.rkey].type)
 
         # Widget type
+        options = self.options
         widget = options.get("widget")
         if widget != "hierarchy":
             # Get the selectable entries for the widget and construct
@@ -2834,12 +2826,6 @@ class S3SQLInlineLink(S3SQLInlineComponent):
         # Render the widget
         attr = dict(attributes)
         attr["_id"] = field.name
-        if not link.table[options.field].writable:
-            _class = attr.get("_class", None)
-            if _class:
-                attr["_class"] = "%s hide" % _class
-            else:
-                attr["_class"] = "hide"
         widget = w(dummy_field, value, **attr)
 
         # Append the attached script to jquery_ready

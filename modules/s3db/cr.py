@@ -453,11 +453,6 @@ class S3ShelterModel(S3Model):
                                 options = cr_shelter_status_filter_opts,
                                 none = True,
                                 ),
-                S3OptionsFilter("organisation_id",
-                                label = T("Organisation"),
-                                #Doesn't translate
-                                #represent = "%(name)s",
-                                ),
                 ]
         if dynamic:
             filter_widgets.append(S3RangeFilter("available_capacity_night",
@@ -744,8 +739,8 @@ class S3ShelterModel(S3Model):
                        "handicap_bath",
                        "capacity_day",
                        "capacity_night",                      
-                       "available_capacity_day",
-                       "available_capacity_night",
+                       "unit_availability_day",
+                       "unit_availability_night",
                        ]
         
         population_onaccept = lambda form: \
@@ -1064,7 +1059,7 @@ class S3ShelterRegistrationModel(S3Model):
     @staticmethod
     def unit_onvalidation(form):
         """
-            Check if the housing unit belongs to the requested shelter
+            Check if the housing unit belongs to ( is registered in )the requested shelter
         """
         
         db = current.db
@@ -1086,19 +1081,14 @@ class S3ShelterRegistrationModel(S3Model):
             elif current.request.controller == "cr":
                 shelter_id = current.request.args[0]
                 unit_id = form.vars.shelter_unit_id     
+            
+        record = db(htable.id == unit_id).select(htable.shelter_id).first()
         
-        if unit_id == None:
-            warning = T("Warning: No housing unit selected")
-            current.response.warning = warning
-        else:                
-            record = db(htable.id == unit_id).select(htable.shelter_id).first()
-        
-            shelter_value = str(record.shelter_id)
-            if shelter_value != shelter_id:
-                error = T("You have to select a housing unit belonged to the shelter")
-                form.errors["branch_id"] = error
-                current.response.error = error
-        return
+        shelter_value = str(record.shelter_id)
+        if shelter_value != shelter_id:
+            error = T("You have to select a housing unit related to this shelter")
+            form.errors["branch_id"] = error
+            current.response.error = error
            
     # -------------------------------------------------------------------------
     @staticmethod

@@ -47,40 +47,16 @@ class S3EVRCaseModel(S3Model):
     def model(self):
 
         T = current.T
-        settings = current.deployment_settings
 
         define_table = self.define_table
         person_id = self.pr_person_id
-        group_id = self.pr_group_id
-        organisation_id = self.org_organisation_id
-                
+        
         # ---------------------------------------------------------------------
         # Case Data
         #
-        enable_evr_organisation = settings.get_evr_link_to_organisation()
-        organisation_label = settings.get_hrm_organisation_label()
-  
-        org_organisation_represent = self.org_OrganisationRepresent()
-        org_widget = S3HierarchyWidget(lookup="org_organisation",
-                                       represent=org_organisation_represent,
-                                       multiple=False,
-                                       leafonly=False,)        
-        
         tablename = "evr_case"
         define_table(tablename,
                      person_id(ondelete="CASCADE"),
-                     organisation_id(
-                                     empty = not settings.get_hrm_org_required(),
-                                     label = organisation_label,
-                                     requires = self.org_organisation_requires(required=True),
-                                     comment = DIV(_class="tooltip",
-                                                   _title="%s|%s" % (T("Designed Organisation"),
-                                                                     T("Organisation designed to take care of evacuee"))),
-                                     widget = org_widget,
-                                     readable = enable_evr_organisation,
-                                     writable = enable_evr_organisation, 
-                                     ),
-                     group_id(label = "Group Membership"),
                      Field("fiscal_code", "string", length = 16,
                            label = T("Fiscal Code"),
                            comment = DIV(_class="tooltip",
@@ -89,7 +65,6 @@ class S3EVRCaseModel(S3Model):
                                                            )
                                          ),
                            ),
-                     
                      s3_comments(),
                      *s3_meta_fields())
 
@@ -100,9 +75,8 @@ class S3EVRCaseModel(S3Model):
 #                                                fiscal_code),
 #                                                null=''
 #                                                )
-        
         self.configure(tablename,
-                       onaccept = self.evr_case_onaccept,                     
+                       onaccept = self.evr_case_onaccept,
                        )
         
         # ---------------------------------------------------------------------

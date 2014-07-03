@@ -25,18 +25,11 @@ T = current.T
 s3 = current.response.s3
 settings = current.deployment_settings
 
+"""
+    Template settings for DRM Portal
+"""
+
 datetime_represent = lambda dt: S3DateTime.datetime_represent(dt, utc=True)
-
-"""
-    Template settings for India DRM Portal
-"""
-
-# -----------------------------------------------------------------------------
-# Pre-Populate
-settings.base.prepopulate = ["India", "demo/users"]
-
-settings.base.system_name = T("India Disaster Risk Management Information System")
-settings.base.system_name_short = T("DRMIS")
 
 # =============================================================================
 # System Settings
@@ -100,6 +93,13 @@ def drmp_realm_entity(table, row):
     return 0
 
 settings.auth.realm_entity = drmp_realm_entity
+
+# -----------------------------------------------------------------------------
+# Pre-Populate
+settings.base.prepopulate = ["India"]
+
+settings.base.system_name = T("India Disaster Risk Management Information System")
+settings.base.system_name_short = T("DRMIS")
 
 # -----------------------------------------------------------------------------
 # Theme (folder to use for views/layout.html)
@@ -3152,8 +3152,7 @@ def customise_org_organisation_controller(**attr):
             table = s3db.org_organisation
 
             # Hide fields
-            field = s3db.org_organisation_organisation_type.organisation_type_id
-            field.readable = field.writable = False
+            table.organisation_type_id.readable = table.organisation_type_id.writable = False
             table.region_id.readable = table.region_id.writable = False
             table.country.readable = table.country.writable = False
             table.year.readable = table.year.writable = False
